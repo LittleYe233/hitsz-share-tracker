@@ -9,5 +9,6 @@
         "ecmaVersion": 13
     },
     "rules": {
+        "indent": ["error", 2]
     }
 }

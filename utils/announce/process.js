@@ -14,21 +14,21 @@ const DEFAULT_NUMWANT = 50;
 const DEFAULT_INTERVAL = 1200;  // 20 min
 const DEFAULT_MIN_INTERVAL = 60;  // 1 min
 const DEFAULT_BUILTIN_RAW_RESP = {
-    interval: DEFAULT_INTERVAL,
-    'min interval': DEFAULT_MIN_INTERVAL
+  interval: DEFAULT_INTERVAL,
+  'min interval': DEFAULT_MIN_INTERVAL
 }
 const CLIENT_ID_BLACKLIST = [
-    'BC',   // BitComet
-    'BL',   // BitCometLite
-    'QD',   // QQDownload
-    'XL'    // Xunlei
+  'BC',   // BitComet
+  'BL',   // BitCometLite
+  'QD',   // QQDownload
+  'XL'    // Xunlei
 ]
 
 /**
  * @typedef {Object} ValidateReturns
  * @property {String} status Validation status
  * @property {String=} message A human-readable error message as to why the
- *                            validation failed
+ *                             validation failed
  * @property {String} result Bencoded result
  * @property {Object} rawResp Raw response object
  */
@@ -54,110 +54,110 @@ const CLIENT_ID_BLACKLIST = [
  *                            messages
  */
 function validate(params) {
-    try {
-        /* validate simply */
-        // ``params``
-        assert(typeof params === 'object', TypeError('params should be an object'));
+  try {
+    /* validate simply */
+    // ``params``
+    assert(typeof params === 'object', TypeError('params should be an object'));
 
-        // ``params.passkey``
-        assert(typeof params.passkey !== 'undefined', ReferenceError('property passkey is not defined'));
-        assert(typeof params.passkey === 'string', TypeError('property passkey should be a string'));
-        assert.match(params.passkey, /^[0-9a-f]{16}$/i, RangeError('property passkey should represent a 16-digit hexadecimal number'));
+    // ``params.passkey``
+    assert(typeof params.passkey !== 'undefined', ReferenceError('property passkey is not defined'));
+    assert(typeof params.passkey === 'string', TypeError('property passkey should be a string'));
+    assert.match(params.passkey, /^[0-9a-f]{16}$/i, RangeError('property passkey should represent a 16-digit hexadecimal number'));
 
-        // ``params.info_hash``
-        assert(typeof params.info_hash !== 'undefined', ReferenceError('property info_hash is not defined'));
-        assert(typeof params.info_hash === 'string', TypeError('property info_hash should be a string'));
-        assert.match(params.info_hash, /^[0-9a-f]{20}$/i, RangeError('property info_hash should represent a 20-digit hexadecimal number'));
+    // ``params.info_hash``
+    assert(typeof params.info_hash !== 'undefined', ReferenceError('property info_hash is not defined'));
+    assert(typeof params.info_hash === 'string', TypeError('property info_hash should be a string'));
+    assert.match(params.info_hash, /^[0-9a-f]{20}$/i, RangeError('property info_hash should represent a 20-digit hexadecimal number'));
         
-        // ``params.peer_id``
-        assert(typeof params.peer_id !== 'undefined', ReferenceError('property peer_id is not defined'));
-        assert(typeof params.peer_id === 'string', TypeError('property peer_id should be a string'));
-        assert.match(params.peer_id, /^-[a-z]{2}[0-9]{4}-[0-9]{12}$/i, RangeError('property peer_id should be in Azureus-style'));
-        /** @todo validate the BT client ID string */
+    // ``params.peer_id``
+    assert(typeof params.peer_id !== 'undefined', ReferenceError('property peer_id is not defined'));
+    assert(typeof params.peer_id === 'string', TypeError('property peer_id should be a string'));
+    assert.match(params.peer_id, /^-[a-z]{2}[0-9]{4}-[0-9]{12}$/i, RangeError('property peer_id should be in Azureus-style'));
+    /** @todo validate the BT client ID string */
         
-        // ``params.port``
-        assert(typeof params.port !== 'undefined', ReferenceError('property port is not defined'));
-        params.port = Number(params.port);
-        assert(Number.isInteger(params.port), TypeError('property port should be an integer'));
-        assert(params.port > 0 && params.port < 65536, RangeError('property port should be greater than 0 and less than 65536'));
+    // ``params.port``
+    assert(typeof params.port !== 'undefined', ReferenceError('property port is not defined'));
+    params.port = Number(params.port);
+    assert(Number.isInteger(params.port), TypeError('property port should be an integer'));
+    assert(params.port > 0 && params.port < 65536, RangeError('property port should be greater than 0 and less than 65536'));
         
-        // ``params.uploaded``
-        assert(typeof params.uploaded !== 'undefined', ReferenceError('property uploaded is not defined'));
-        params.uploaded = Number(params.uploaded);
-        assert(Number.isInteger(params.uploaded), TypeError('property uploaded should be an integer'));
-        assert(params.uploaded >= 0, RangeError('property uploaded should not be negative'));
+    // ``params.uploaded``
+    assert(typeof params.uploaded !== 'undefined', ReferenceError('property uploaded is not defined'));
+    params.uploaded = Number(params.uploaded);
+    assert(Number.isInteger(params.uploaded), TypeError('property uploaded should be an integer'));
+    assert(params.uploaded >= 0, RangeError('property uploaded should not be negative'));
         
-        // ``params.downloaded``
-        assert(typeof params.downloaded !== 'undefined', ReferenceError('property downloaded is not defined'));
-        params.downloaded = Number(params.downloaded);
-        assert(Number.isInteger(params.downloaded), TypeError('property downloaded should be an integer'));
-        assert(params.downloaded >= 0, RangeError('property downloaded should not be negative'));
+    // ``params.downloaded``
+    assert(typeof params.downloaded !== 'undefined', ReferenceError('property downloaded is not defined'));
+    params.downloaded = Number(params.downloaded);
+    assert(Number.isInteger(params.downloaded), TypeError('property downloaded should be an integer'));
+    assert(params.downloaded >= 0, RangeError('property downloaded should not be negative'));
         
-        // ``params.left``
-        assert(typeof params.left !== 'undefined', ReferenceError('property left is not defined'));
-        params.left = Number(params.left);
-        assert(Number.isInteger(params.left), TypeError('property left should be an integer'));
-        assert(params.left >= 0, RangeError('property left should not be negative'));
+    // ``params.left``
+    assert(typeof params.left !== 'undefined', ReferenceError('property left is not defined'));
+    params.left = Number(params.left);
+    assert(Number.isInteger(params.left), TypeError('property left should be an integer'));
+    assert(params.left >= 0, RangeError('property left should not be negative'));
         
-        // ``params.compact``
-        params.compact = typeof params.compact === 'undefined' ? 0 : params.compact;
-        assert([0, 1].includes(params.compact), RangeError('property compact should be 0 or 1'));
+    // ``params.compact``
+    params.compact = typeof params.compact === 'undefined' ? 0 : params.compact;
+    assert([0, 1].includes(params.compact), RangeError('property compact should be 0 or 1'));
 
-        // ``params.no_peer_id``
-        params.no_peer_id = typeof params.no_peer_id === 'undefined' ? 0 : params.no_peer_id;
-        assert([0, 1].includes(params.no_peer_id), RangeError('property no_peer_id should be 0 or 1'));
+    // ``params.no_peer_id``
+    params.no_peer_id = typeof params.no_peer_id === 'undefined' ? 0 : params.no_peer_id;
+    assert([0, 1].includes(params.no_peer_id), RangeError('property no_peer_id should be 0 or 1'));
 
-        // ``params.event``
-        params.event = typeof params.event === 'undefined' ? '' : params.event;
-        assert(['started', 'completed', 'stopped', ''].includes(params.event), RangeError('property event should be "started", "completed", "stopped" or ""'));
+    // ``params.event``
+    params.event = typeof params.event === 'undefined' ? '' : params.event;
+    assert(['started', 'completed', 'stopped', ''].includes(params.event), RangeError('property event should be "started", "completed", "stopped" or ""'));
 
-        // ``params.ip``
-        params.ip = typeof params.ip === 'undefined' ? '' : params.ip;
-        /** @note Matching IPv6 addresses by RegEx is very complicated! */
-        assert(params.ip === '' || isIP(params.ip), RangeError('property ip is an invalid IP address'));
+    // ``params.ip``
+    params.ip = typeof params.ip === 'undefined' ? '' : params.ip;
+    /** @note Matching IPv6 addresses by RegEx is very complicated! */
+    assert(params.ip === '' || isIP(params.ip), RangeError('property ip is an invalid IP address'));
 
-        // ``params.numwant``
-        params.numwant = typeof params.numwant === 'undefined' ? DEFAULT_NUMWANT : params.numwant;
-        assert(params.numwant >= 0, RangeError('property numwant should not be negative'));
+    // ``params.numwant``
+    params.numwant = typeof params.numwant === 'undefined' ? DEFAULT_NUMWANT : params.numwant;
+    assert(params.numwant >= 0, RangeError('property numwant should not be negative'));
 
-        /* validate ``params.peer_id`` */
-        // block clients in the blacklist
-        let client_id = params.peer_id.slice(1, 3);
-        assert(!CLIENT_ID_BLACKLIST.includes(client_id), RangeError('property peer_id represents a blocked client'));
-    } catch (e) {
-        let rawResp = {
-            ...DEFAULT_BUILTIN_RAW_RESP,
-            'failure reason': e.message
-            /** complete, incomplete, peers */
-        }
-        if (typeof params.trackerid !== 'undefined') {
-            rawResp.trackerid = params.trackerid;
-        }
-
-        return {
-            status: 'failed',
-            message: e.message,
-            rawResp: rawResp,
-            result: Bencode.encode(rawResp)
-        };
-    }
-
-    // return the result
+    /* validate ``params.peer_id`` */
+    // block clients in the blacklist
+    let client_id = params.peer_id.slice(1, 3);
+    assert(!CLIENT_ID_BLACKLIST.includes(client_id), RangeError('property peer_id represents a blocked client'));
+  } catch (e) {
     let rawResp = {
-        ...DEFAULT_BUILTIN_RAW_RESP
-        /** complete, incomplete, peers */
+      ...DEFAULT_BUILTIN_RAW_RESP,
+      'failure reason': e.message
+      /** complete, incomplete, peers */
     }
     if (typeof params.trackerid !== 'undefined') {
-        rawResp.trackerid = params.trackerid;
+      rawResp.trackerid = params.trackerid;
     }
 
     return {
-        status: 'passed',
-        rawResp: rawResp,
-        result: Bencode.encode(rawResp)
+      status: 'failed',
+      message: e.message,
+      rawResp: rawResp,
+      result: Bencode.encode(rawResp)
     };
+  }
+
+  // return the result
+  let rawResp = {
+    ...DEFAULT_BUILTIN_RAW_RESP
+    /** complete, incomplete, peers */
+  }
+  if (typeof params.trackerid !== 'undefined') {
+    rawResp.trackerid = params.trackerid;
+  }
+
+  return {
+    status: 'passed',
+    rawResp: rawResp,
+    result: Bencode.encode(rawResp)
+  };
 }
 
 module.exports = {
-    validate: validate
+  validate: validate
 }
