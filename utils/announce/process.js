@@ -17,6 +17,12 @@ const DEFAULT_BUILTIN_RAW_RESP = {
     interval: DEFAULT_INTERVAL,
     'min interval': DEFAULT_MIN_INTERVAL
 }
+const CLIENT_ID_BLACKLIST = [
+    'BC',   // BitComet
+    'BL',   // BitCometLite
+    'QD',   // QQDownload
+    'XL'    // Xunlei
+]
 
 /**
  * @typedef {Object} ValidateReturns
@@ -48,8 +54,8 @@ const DEFAULT_BUILTIN_RAW_RESP = {
  *                            messages
  */
 function validate(params) {
-    // the very first validation
     try {
+        /* validate simply */
         // ``params``
         assert(typeof params === 'object', TypeError('params should be an object'));
 
@@ -113,6 +119,11 @@ function validate(params) {
         // ``params.numwant``
         params.numwant = typeof params.numwant === 'undefined' ? DEFAULT_NUMWANT : params.numwant;
         assert(params.numwant >= 0, RangeError('property numwant should not be negative'));
+
+        /* validate ``params.peer_id`` */
+        // block clients in the blacklist
+        let client_id = params.peer_id.slice(1, 3);
+        assert(!CLIENT_ID_BLACKLIST.includes(client_id), RangeError('property peer_id represents a blocked client'));
     } catch (e) {
         let rawResp = {
             ...DEFAULT_BUILTIN_RAW_RESP,
