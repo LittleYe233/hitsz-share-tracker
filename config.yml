@@ -1,0 +1,16 @@
+# Configurations of Hikaru Share Tracker
+
+secrets:
+  - secrets/secret.yml
+
+databases:
+  # database for authorized users
+  auth_users:
+    # host (default: localhost)
+    host:
+    # port (default: 3389)
+    port:
+    # database
+    db:
+    # table
+    tbl:
