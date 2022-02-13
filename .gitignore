@@ -108,3 +108,6 @@ dist
 
 # NPM package-lock (though it's not recommended)
 package-lock.json
+
+# Secret configuration files
+secrets/
