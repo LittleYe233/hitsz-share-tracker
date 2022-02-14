@@ -6,6 +6,8 @@
  * @brief An utility to process with project configurations.
  */
 
+//@ts-check
+
 const yaml = require('yaml');
 const fs = require('fs');
 const path = require('path');
@@ -16,11 +18,11 @@ const DEFAULT_CONFIG_PATH = '../../config.yml';
 /**
  * Parse a configuration file.
  * @param {String} filename Filename of the configuration file
- * @param {String} encoding Encoding of the configuration file (default: utf8)
+ * @param {BufferEncoding} encoding Encoding of the configuration file (default: utf8)
  * @returns {Object} Parsed configurations
  */
 function parseConfig(filename, encoding='utf8') {
-  const cfgFile = fs.readFileSync(filename, encoding);
+  const cfgFile = fs.readFileSync(filename, {encoding: encoding});
   const cfg = yaml.parse(cfgFile);
   
   return cfg;
@@ -29,11 +31,21 @@ function parseConfig(filename, encoding='utf8') {
 /**
  * Parse a configuration file with secrets.
  * @param {String} filename Filename of the configuration file
- * @param {String} encoding Encoding of all the configuration files including
- *                          the secrets (default: utf8)
+ * @param {Object} options Optional parameters
+ * @param {BufferEncoding=} options.encoding
+ *    Encoding of all the configuration files including the secrets
+ *    (default: utf8)
+ * @param {Boolean=} options.rmsecrets
+ *    Whether to remove secrets (default: true)
  * @returns {Object} Parsed configurations
  */
-function parseConfigWithSecrets(filename, encoding='utf8') {
+function parseConfigWithSecrets(filename, options={}) {
+  // parse options
+  const {
+    encoding = 'utf-8',
+    rmsecrets = true
+  } = options;
+
   // parse raw config
   let cfg = parseConfig(filename, encoding);
 
@@ -47,11 +59,15 @@ function parseConfigWithSecrets(filename, encoding='utf8') {
       }
     }
   }
+  // delete this key to protect privacy
+  if (rmsecrets) {
+    delete cfg.secrets;
+  }
 
   return cfg;
 }
 
-const parseProjectConfig = (encoding) => parseConfigWithSecrets(DEFAULT_CONFIG_PATH, encoding);
+const parseProjectConfig = (options={}) => parseConfigWithSecrets(DEFAULT_CONFIG_PATH, options);
 
 module.exports = {
   parseProjectConfig: parseProjectConfig
