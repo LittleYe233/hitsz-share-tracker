@@ -6,7 +6,7 @@
  * @brief An utility to process with project configurations.
  */
 
-//@ts-check
+// @ts-nocheck
 
 const yaml = require('yaml');
 const fs = require('fs');
@@ -16,13 +16,21 @@ const { merge } = require('lodash');
 const DEFAULT_CONFIG_PATH = '../../config.yml';
 
 /**
+ * @typedef {import('./config').ParseConfigReturns} ParseConfigReturns
+ * @typedef {import('./config').parseConfig} parseConfig
+ * @typedef {import('./config').parseConfigWithSecrets} parseConfigWithSecrets
+ */
+
+/**
  * Parse a configuration file.
- * @param {String} filename Filename of the configuration file
- * @param {BufferEncoding} encoding Encoding of the configuration file (default: utf8)
- * @returns {Object} Parsed configurations
+ * @type {parseConfig}
+ * @param filename Filename of the configuration file
+ * @param encoding Encoding of the configuration file (default: utf8)
+ * @returns Parsed configurations
  */
 function parseConfig(filename, encoding='utf8') {
   const cfgFile = fs.readFileSync(filename, {encoding: encoding});
+  /** @type {ParseConfigReturns} */
   const cfg = yaml.parse(cfgFile);
   
   return cfg;
@@ -30,14 +38,15 @@ function parseConfig(filename, encoding='utf8') {
 
 /**
  * Parse a configuration file with secrets.
- * @param {String} filename Filename of the configuration file
- * @param {Object} options Optional parameters
- * @param {BufferEncoding=} options.encoding
+ * @type {parseConfigWithSecrets}
+ * @param filename Filename of the configuration file
+ * @param options Optional parameters
+ * @param options.encoding
  *    Encoding of all the configuration files including the secrets
  *    (default: utf8)
- * @param {Boolean=} options.rmsecrets
+ * @param options.rmsecrets
  *    Whether to remove secrets (default: true)
- * @returns {Object} Parsed configurations
+ * @returns Parsed configurations
  */
 function parseConfigWithSecrets(filename, options={}) {
   // parse options
