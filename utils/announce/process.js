@@ -25,6 +25,13 @@ const CLIENT_ID_BLACKLIST = [
   'QD',   // QQDownload
   'XL'    // Xunlei
 ];
+const CLIENT_ID_WHITELIST = [
+  'BT',   // mainline BitTorrent (version>=7.9)
+  'qB',   // qBittorrent
+  'TR',   // Transmission
+  'UM',   // μTorrent for Mac
+  'UT'    // μTorrent
+];
 
 /**
  * @typedef {import('./process').RawResp} RawResp
@@ -50,37 +57,36 @@ function validate(params) {
     assert(typeof params.info_hash !== 'undefined', ReferenceError('property info_hash is not defined'));
     assert(typeof params.info_hash === 'string', TypeError('property info_hash should be a string'));
     assert.match(params.info_hash, /^[0-9a-f]{20}$/i, RangeError('property info_hash should represent a 20-digit hexadecimal number'));
-        
+
     // `params.peer_id`
     assert(typeof params.peer_id !== 'undefined', ReferenceError('property peer_id is not defined'));
     assert(typeof params.peer_id === 'string', TypeError('property peer_id should be a string'));
     assert.match(params.peer_id, /^-[a-z]{2}[0-9]{4}-[0-9]{12}$/i, RangeError('property peer_id should be in Azureus-style'));
-    /** @todo validate the BT client ID string */
-        
+
     // `params.port`
     assert(typeof params.port !== 'undefined', ReferenceError('property port is not defined'));
     params.port = Number(params.port);
     assert(Number.isInteger(params.port), TypeError('property port should be an integer'));
     assert(params.port > 0 && params.port < 65536, RangeError('property port should be greater than 0 and less than 65536'));
-        
+
     // `params.uploaded`
     assert(typeof params.uploaded !== 'undefined', ReferenceError('property uploaded is not defined'));
     params.uploaded = Number(params.uploaded);
     assert(Number.isInteger(params.uploaded), TypeError('property uploaded should be an integer'));
     assert(params.uploaded >= 0, RangeError('property uploaded should not be negative'));
-        
+
     // `params.downloaded`
     assert(typeof params.downloaded !== 'undefined', ReferenceError('property downloaded is not defined'));
     params.downloaded = Number(params.downloaded);
     assert(Number.isInteger(params.downloaded), TypeError('property downloaded should be an integer'));
     assert(params.downloaded >= 0, RangeError('property downloaded should not be negative'));
-        
+
     // `params.left`
     assert(typeof params.left !== 'undefined', ReferenceError('property left is not defined'));
     params.left = Number(params.left);
     assert(Number.isInteger(params.left), TypeError('property left should be an integer'));
     assert(params.left >= 0, RangeError('property left should not be negative'));
-        
+
     // `params.compact`
     params.compact = typeof params.compact === 'undefined' ? 0 : params.compact;
     assert([0, 1].includes(params.compact), RangeError('property compact should be 0 or 1'));
@@ -105,7 +111,7 @@ function validate(params) {
     /* validate `params.peer_id` */
     // block clients in the blacklist
     let client_id = params.peer_id.slice(1, 3);
-    assert(!CLIENT_ID_BLACKLIST.includes(client_id), RangeError('property peer_id represents a blocked client'));
+    assert(CLIENT_ID_WHITELIST.includes(client_id), RangeError('property peer_id represents a blocked client'));
   } catch (e) {
     rawResp = {
       ...DEFAULT_BUILTIN_RAW_RESP,
