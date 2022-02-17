@@ -6,13 +6,34 @@
  * @brief Declarations of config.d.ts.
  */
 
+export type BasicConnectionConfig = {
+  host?: string,
+  port?: number,
+  user: string,   // forcely require this field for convenience
+  pass?: string
+};
+
+export type BasicMySQLConfig = BasicConnectionConfig & {
+  db: string,
+  tbl: string
+};
+
+export type BasicRedisConfig = BasicConnectionConfig & {
+  db?: number,    // Redis database index (0-15)
+  key: string
+};
+
 export type ParseConfigReturns = {
   secrets?: Array<string>;
-  clients?: {
-    databases?: Record<string, unknown>
+  clients: {
+    databases: {
+      auth_user: BasicMySQLConfig
+    }
   },
-  server?: {
-    databases?: Record<string, unknown>
+  server: {
+    databases: {
+      auth_user: BasicMySQLConfig
+    }
   }
 };
 
