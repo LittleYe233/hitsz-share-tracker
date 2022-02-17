@@ -8,7 +8,12 @@
 
 export type ParseConfigReturns = {
   secrets?: Array<string>;
-  databases: Record<string, Record<string, unknown>>;
+  clients?: {
+    databases?: Record<string, unknown>
+  },
+  server?: {
+    databases?: Record<string, unknown>
+  }
 };
 
 export function parseConfig(
