@@ -19,12 +19,6 @@ const DEFAULT_BUILTIN_RAW_RESP = {
   interval: DEFAULT_INTERVAL,
   'min interval': DEFAULT_MIN_INTERVAL
 };
-const CLIENT_ID_BLACKLIST = [
-  'BC',   // BitComet
-  'BL',   // BitCometLite
-  'QD',   // QQDownload
-  'XL'    // Xunlei
-];
 const CLIENT_ID_WHITELIST = [
   'BT',   // mainline BitTorrent (version>=7.9)
   'qB',   // qBittorrent
