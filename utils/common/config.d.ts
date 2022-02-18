@@ -27,12 +27,14 @@ export type ParseConfigReturns = {
   secrets?: Array<string>;
   clients: {
     databases: {
-      auth_user: BasicMySQLConfig
+      auth_user: BasicMySQLConfig,
+      active_clients: BasicRedisConfig
     }
   },
   server: {
     databases: {
-      auth_user: BasicMySQLConfig
+      auth_user: BasicMySQLConfig,
+      active_clients: BasicRedisConfig
     }
   }
 };

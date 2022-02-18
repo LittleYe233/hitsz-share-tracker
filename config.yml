@@ -16,6 +16,14 @@ client:
       db:
       # table
       tbl:
+    # database for active BT clients
+    active_clients:
+      host:
+      port:
+      # database index (default: 0)
+      db:
+      # key
+      key:
 
 # How does a tracker server start a tracker service?
 # E.g. The settings below affect how a tracker server initializes databases.
@@ -29,3 +37,8 @@ server:
       port:
       db:
       tbl:
+    active_clients:
+      host:
+      port:
+      db:
+      key:
