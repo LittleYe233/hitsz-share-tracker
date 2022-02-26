@@ -6,6 +6,8 @@
  * @brief Declarations of config.d.ts.
  */
 
+/** */
+
 export type BasicConnectionConfig = {
   host?: string,
   port?: number,
@@ -25,15 +27,15 @@ export type BasicRedisConfig = BasicConnectionConfig & {
 
 export type ParseConfigReturns = {
   secrets?: Array<string>;
-  clients: {
+  client: {
     databases: {
-      auth_user: BasicMySQLConfig,
+      auth_users: BasicMySQLConfig,
       active_clients: BasicRedisConfig
     }
   },
   server: {
     databases: {
-      auth_user: BasicMySQLConfig,
+      auth_users: BasicMySQLConfig,
       active_clients: BasicRedisConfig
     }
   }
@@ -46,6 +48,13 @@ export function parseConfig(
 
 export function parseConfigWithSecrets(
   filename: string,
+  options?: {
+    encoding?: BufferEncoding,
+    rmsecrets?: boolean
+  }
+): ParseConfigReturns;
+
+export function parseProjectConfig(
   options?: {
     encoding?: BufferEncoding,
     rmsecrets?: boolean
