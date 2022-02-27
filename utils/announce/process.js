@@ -8,6 +8,8 @@
 
 // @ts-check
 
+/** */
+
 const assert = require('assert');
 const { isIP } = require('net');
 const Bencode = require('bencode-js');
