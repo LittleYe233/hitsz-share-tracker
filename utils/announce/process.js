@@ -6,7 +6,7 @@
  * @brief An utility to process with requests to and responses from /announce.
  */
 
-// @ts-nocheck
+// @ts-check
 
 const assert = require('assert');
 const { isIP } = require('net');
@@ -27,14 +27,9 @@ const CLIENT_ID_WHITELIST = [
   'UT'    // μTorrent
 ];
 
-/**
- * @typedef {import('./process').RawResp} RawResp
- * @typedef {import('./process').validate} validate
- */
-
-/** @type {validate}  */
+/** @type {import('./process').validate}  */
 function validate(params) {
-  /** @type {RawResp} */
+  /** @type {import('./process').RawResp} */
   let rawResp;
 
   try {
