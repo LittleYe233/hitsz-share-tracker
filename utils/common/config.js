@@ -6,7 +6,9 @@
  * @brief An utility to process with project configurations.
  */
 
-// @ts-nocheck
+// @ts-check
+
+/** */
 
 const yaml = require('yaml');
 const fs = require('fs');
@@ -14,23 +16,45 @@ const path = require('path');
 const { merge } = require('lodash');
 
 const DEFAULT_CONFIG_PATH = '../../config.yml';
-
-/**
- * @typedef {import('./config').ParseConfigReturns} ParseConfigReturns
- * @typedef {import('./config').parseConfig} parseConfig
- * @typedef {import('./config').parseConfigWithSecrets} parseConfigWithSecrets
- */
+const DEFAULT_CONFIG = {
+  client: {
+    databases: {
+      auth_users: {
+        host: 'localhost',
+        port: 3389
+      },
+      active_clients: {
+        host: 'localhost',
+        port: 6379,
+        db: 0
+      }
+    }
+  },
+  server: {
+    databases: {
+      auth_users: {
+        host: 'localhost',
+        port: 3389
+      },
+      active_clients: {
+        host: 'localhost',
+        port: 6379,
+        db: 0
+      }
+    }
+  }
+};
 
 /**
  * Parse a configuration file.
- * @type {parseConfig}
+ * @type {import('./config').parseConfig}
  * @param filename Filename of the configuration file
  * @param encoding Encoding of the configuration file (default: utf8)
  * @returns Parsed configurations
  */
 function parseConfig(filename, encoding='utf8') {
   const cfgFile = fs.readFileSync(filename, {encoding: encoding});
-  /** @type {ParseConfigReturns} */
+  /** @type {import('./config').ParseConfigReturns} */
   const cfg = yaml.parse(cfgFile);
   
   return cfg;
@@ -38,14 +62,9 @@ function parseConfig(filename, encoding='utf8') {
 
 /**
  * Parse a configuration file with secrets.
- * @type {parseConfigWithSecrets}
+ * @type {import('./config').parseConfigWithSecrets}
  * @param filename Filename of the configuration file
  * @param options Optional parameters
- * @param options.encoding
- *    Encoding of all the configuration files including the secrets
- *    (default: utf8)
- * @param options.rmsecrets
- *    Whether to remove secrets (default: true)
  * @returns Parsed configurations
  */
 function parseConfigWithSecrets(filename, options={}) {
@@ -76,7 +95,19 @@ function parseConfigWithSecrets(filename, options={}) {
   return cfg;
 }
 
-const parseProjectConfig = (options={}) => parseConfigWithSecrets(DEFAULT_CONFIG_PATH, options);
+/**
+ * Parse a project configuration file with pre- and post-processes.
+ * @type {import('./config').parseProjectConfig}
+ * @param options Optional parameters
+ */
+function parseProjectConfig(options={}) {
+  let cfg = parseConfigWithSecrets(DEFAULT_CONFIG_PATH, options);
+
+  // merge default configurations
+  cfg = merge(DEFAULT_CONFIG, cfg);
+
+  return cfg;
+}
 
 module.exports = {
   parseProjectConfig: parseProjectConfig
