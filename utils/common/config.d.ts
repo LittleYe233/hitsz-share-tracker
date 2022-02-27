@@ -3,7 +3,7 @@
  * @author LittleYe233
  * @email 30514318+LittleYe233@users.noreply.github.com
  * @date 2022-02-15
- * @brief Declarations of config.d.ts.
+ * @brief Declarations of config.js.
  */
 
 /** */
