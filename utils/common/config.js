@@ -21,7 +21,7 @@ const DEFAULT_CONFIG = {
     databases: {
       auth_users: {
         host: 'localhost',
-        port: 3389
+        port: 3306
       },
       active_clients: {
         host: 'localhost',
@@ -34,7 +34,7 @@ const DEFAULT_CONFIG = {
     databases: {
       auth_users: {
         host: 'localhost',
-        port: 3389
+        port: 3306
       },
       active_clients: {
         host: 'localhost',
