@@ -11,18 +11,18 @@
 export type BasicConnectionConfig = {
   host?: string,
   port?: number,
-  user: string,   // forcely require this field for convenience
+  user?: string,   // forcely require this field for convenience
   pass?: string
 };
 
 export type BasicMySQLConfig = BasicConnectionConfig & {
-  db: string,
-  tbl: string
+  db?: string,
+  tbl?: string
 };
 
 export type BasicRedisConfig = BasicConnectionConfig & {
   db?: number,    // Redis database index (0-15)
-  key: string
+  key?: string
 };
 
 export type ParseConfigReturns = {
