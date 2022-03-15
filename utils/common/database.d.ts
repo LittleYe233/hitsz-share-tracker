@@ -9,8 +9,7 @@
 /** */
 
 import * as mysql from 'mysql';
-import { RedisClientType as _RedisClientType } from '@node-redis/client';
-import { BasicConnectionConfig, BasicRedisConfig } from './config';
+import { BasicConnectionConfig, BasicMySQLConfig } from './config';
 
 type _DatabaseConn = BasicConnectionConfig & {
   // important for internal use
@@ -33,27 +32,11 @@ export type _MySQLConn = _DatabaseConn & {
   query?: mysql.QueryFunction;
 }
 
-export type _RedisConn = _DatabaseConn & {
-  // from arguments
-  db?: number;
-  key?: string;
+type _ActiveClientsSpecMethods = {
+  initialize?(): unknown;
+};
 
-  // important for internal use
-  conn?: _RedisClientType;
+export type _ActiveClientsConfig = BasicMySQLConfig;
 
-  // methods
-  // NOTE: For Redis built-in commands, use `RedisConn.conn` instead.
-}
-
-type _ProjectDatabaseConn = {
-  initialize?(): Promise<number>;
-}
-
-type _ActiveClientsSpecConfig = {
-  max_clients?: number;
-}
-
-export type _ActiveClientsConfig = BasicRedisConfig & _ActiveClientsSpecConfig;
-
-export type _AuthUsersConn = _MySQLConn & _ProjectDatabaseConn;
-export type _ActiveClientsConn = _RedisConn & _ProjectDatabaseConn & _ActiveClientsSpecConfig;
+export type _AuthUsersConn = _MySQLConn;
+export type _ActiveClientsConn = _MySQLConn & _ActiveClientsSpecMethods;
