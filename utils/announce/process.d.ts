@@ -17,14 +17,7 @@ export type RawResp = {
   peers: Array<{ peer_id: string; ip: string; port: number }>;
 };
 
-export type ValidateReturns = {
-  status: string,
-  message?: string,
-  result: string,
-  rawResp: RawResp
-};
-
-export function validate(params: {
+export type validateParams = {
   passkey: string,
   info_hash: string,
   peer_id: string,
@@ -38,4 +31,14 @@ export function validate(params: {
   ip?: '',
   numwant?: number,
   trackerid?: unknown
-}): ValidateReturns;
+};
+
+export type ValidateReturns = {
+  status: string,
+  message?: string,
+  params: validateParams,
+  result: string,
+  rawResp: RawResp
+};
+
+export function validate(params: validateParams): ValidateReturns;

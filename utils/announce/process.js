@@ -119,6 +119,7 @@ function validate(params) {
     return {
       status: 'failed',
       message: e.message,
+      params: params,
       rawResp: rawResp,
       result: Bencode.encode(rawResp)
     };
@@ -138,6 +139,7 @@ function validate(params) {
 
   return {
     status: 'passed',
+    params: params,
     rawResp: rawResp,
     result: Bencode.encode(rawResp)
   };
