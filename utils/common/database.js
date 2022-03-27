@@ -61,12 +61,12 @@ function _ActiveClientsConn(params={}) {
   inst.initialize = () => {
     // NOTE: You can't use `inst.query` here.
     inst.conn.query({
-      sql: `DROP TABLE IF EXISTS \`${inst.tbl}\``,
+      sql: `DROP TABLE IF EXISTS \`${mysql.escapeId(inst.tbl)}\``,
     }, (err, results, fields) => {
       // `DROP TABLE` can't be rollbacked
       if (err) { throw err; }
       inst.conn.query({
-        sql: `CREATE TABLE \`${inst.tbl}\` (\`passkey\` CHAR(16) NOT NULL, \`peer_id\` CHAR(20) NOT NULL, \`info_hash\` CHAR(20) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8`
+        sql: `CREATE TABLE \`${mysql.escapeId(inst.tbl)}\` (\`passkey\` CHAR(16) NOT NULL, \`peer_id\` CHAR(20) NOT NULL, \`info_hash\` CHAR(20) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8`
       }, (err, results, fields) => {
         if (err) { throw err; }
         // It doesn't need a commit.
@@ -91,7 +91,7 @@ function _ActiveClientsConn(params={}) {
       throw ReferenceError('property info_hash is not defined');
     }
     inst.conn.query({
-      sql: `INSERT INTO \`${inst.tbl}\` (passkey, peer_id, info_hash) VALUES (?, ?, ?)`
+      sql: `INSERT INTO \`${mysql.escapeId(inst.tbl)}\` (passkey, peer_id, info_hash) VALUES (?, ?, ?)`
     },
     [client.passkey, client.peer_id, client.info_hash],
     (err, results, fields) => {
