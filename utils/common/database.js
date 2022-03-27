@@ -69,7 +69,30 @@ function _ActiveClientsConn(params={}) {
         sql: `CREATE TABLE \`${inst.tbl}\` (\`passkey\` CHAR(16) NOT NULL, \`peer_id\` CHAR(20) NOT NULL, \`info_hash\` CHAR(20) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8`
       }, (err, results, fields) => {
         if (err) { throw err; }
+        // It doesn't need a commit.
+        // execute successfully
+        return results;
       });
+    });
+  };
+
+  inst.addClient = (client) => {
+    if (client.passkey === undefined) {
+      throw ReferenceError('property passkey is not defined');
+    }
+    if (client.peer_id === undefined) {
+      throw ReferenceError('property peer_id is not defined');
+    }
+    if (client.info_hash === undefined) {
+      throw ReferenceError('property info_hash is not defined');
+    }
+    inst.conn.query({
+      sql: `INSERT INTO \`${inst.tbl}\` (passkey, peer_id, info_hash) VALUES (?, ?, ?)`
+    },
+    [client.passkey, client.peer_id, client.info_hash],
+    (err, results, fields) => {
+      if (err) { throw err; }
+      return results;
     });
   };
 
