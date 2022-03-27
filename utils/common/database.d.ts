@@ -37,6 +37,7 @@ export type _MySQLConn = _DatabaseConn & {
 type _ActiveClientsSpecMethods = {
   initialize?(): unknown;
   addClient?(client: { passkey: string, peer_id: string, info_hash: string }): unknown;
+  removeClient?(client: { passkey?: string, peer_id?: string, info_hash?: string }): unknown;
 };
 
 export type _ActiveClientsConfig = BasicMySQLConfig;

@@ -76,6 +76,10 @@ function _ActiveClientsConn(params={}) {
     });
   };
 
+  /**
+   * Add an active client to the database.
+   * @returns
+   */
   inst.addClient = (client) => {
     if (client.passkey === undefined) {
       throw ReferenceError('property passkey is not defined');
@@ -91,6 +95,42 @@ function _ActiveClientsConn(params={}) {
     },
     [client.passkey, client.peer_id, client.info_hash],
     (err, results, fields) => {
+      if (err) { throw err; }
+      return results;
+    });
+  };
+
+  /**
+   * Remove active clients from the database.
+   * @param client Conditions of the clients to be removed.
+   * 
+   * A condition is a valid condition only when its field is one of "passkey",
+   * "peer_id" and "info_hash", regardless whether its value is valid or not. So
+   * you should validate these conditions first.
+   * 
+   * If `client` has multiple conditions, the target clients should meet all of
+   * them.
+   * @note Specially, this will remove all active clients if `client` doesn't
+   * contain a valid condition.
+   */
+  inst.removeClient = (client) => {
+    // a definitely true statement, causing all clients are selected
+    let whereClasue = '1=1';
+    // as a prefix
+    if (client.passkey !== undefined || client.peer_id !== undefined || client.info_hash !== undefined) {
+      if (client.passkey !== undefined) {
+        whereClasue += ' AND passkey=' + mysql.escape(client.passkey);
+      }
+      if (client.peer_id !== undefined) {
+        whereClasue += ' AND peer_id=' + mysql.escape(client.peer_id);
+      }
+      if (client.info_hash !== undefined) {
+        whereClasue += ' AND info_hash=' + mysql.escape(client.info_hash);
+      }
+    }
+    inst.conn.query({
+      sql: `DELETE FROM \`${mysql.escapeId(inst.tbl)}\` WHERE ` + whereClasue
+    }, (err, results, fields) => {
       if (err) { throw err; }
       return results;
     });
