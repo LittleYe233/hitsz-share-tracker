@@ -35,11 +35,11 @@ function MySQLConn(params) {
       database: inst.db
     });
 
+    inst.disconnect = inst.conn.end;
+    inst.query = inst.conn.query;
+
     return inst.conn.connect(...args);
   };
-
-  inst.disconnect = inst.conn.end;
-  inst.query = inst.conn.query;
 
   return inst;
 }
@@ -57,7 +57,21 @@ function _ActiveClientsConn(params={}) {
    * reset the database to a default state.
    * @returns 
    */
-  inst.initialize;
+  // It leads to a callback hell, and needs to be fixed later.
+  inst.initialize = () => {
+    // NOTE: You can't use `inst.query` here.
+    inst.conn.query({
+      sql: `DROP TABLE IF EXISTS \`${inst.tbl}\``,
+    }, (err, results, fields) => {
+      // `DROP TABLE` can't be rollbacked
+      if (err) { throw err; }
+      inst.conn.query({
+        sql: `CREATE TABLE \`${inst.tbl}\` (\`passkey\` CHAR(16) NOT NULL, \`peer_id\` CHAR(20) NOT NULL, \`info_hash\` CHAR(20) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8`
+      }, (err, results, fields) => {
+        if (err) { throw err; }
+      });
+    });
+  };
 
   return inst;
 }
