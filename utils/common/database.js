@@ -136,6 +136,42 @@ function _ActiveClientsConn(params={}) {
     });
   };
 
+  /**
+   * Query active clients from the database.
+   * @param cond Conditions of the target clients.
+   * 
+   * A condition is a valid condition only when its field is one of "passkey",
+   * "peer_id" and "info_hash", regardless whether its value is valid or not. So
+   * you should validate these conditions first.
+   * 
+   * If `client` has multiple conditions, the target clients should meet all of
+   * them.
+   * @note Specially, this will return all active clients if `client` doesn't
+   * contain a valid condition.
+   */
+  inst.queryClients = (cond) => {
+    // a definitely true statement, causing all clients are selected
+    let whereClasue = '1=1';
+    // as a prefix
+    if (cond.passkey !== undefined || cond.peer_id !== undefined || cond.info_hash !== undefined) {
+      if (cond.passkey !== undefined) {
+        whereClasue += ' AND passkey=' + mysql.escape(cond.passkey);
+      }
+      if (cond.peer_id !== undefined) {
+        whereClasue += ' AND peer_id=' + mysql.escape(cond.peer_id);
+      }
+      if (cond.info_hash !== undefined) {
+        whereClasue += ' AND info_hash=' + mysql.escape(cond.info_hash);
+      }
+    }
+    inst.conn.query({
+      sql: `SELECT passkey, peer_id, info_hash FROM ${mysql.escapeId(inst.tbl)} WHERE ` + whereClasue
+    }, (err, results, fields) => {
+      if (err) { throw err; }
+      return results;
+    });
+  };
+
   return inst;
 }
 

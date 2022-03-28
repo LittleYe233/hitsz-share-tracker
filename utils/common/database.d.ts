@@ -38,6 +38,7 @@ type _ActiveClientsSpecMethods = {
   initialize?(): unknown;
   addClient?(client: { passkey: string, peer_id: string, info_hash: string }): unknown;
   removeClients?(cond: { passkey?: string, peer_id?: string, info_hash?: string }): unknown;
+  queryClients?(cond: { passkey?: string, peer_id?: string, info_hash?: string }): unknown;
 };
 
 export type _ActiveClientsConfig = BasicMySQLConfig;
