@@ -102,7 +102,7 @@ function _ActiveClientsConn(params={}) {
 
   /**
    * Remove active clients from the database.
-   * @param client Conditions of the clients to be removed.
+   * @param cond Conditions of the clients to be removed.
    * 
    * A condition is a valid condition only when its field is one of "passkey",
    * "peer_id" and "info_hash", regardless whether its value is valid or not. So
@@ -113,19 +113,19 @@ function _ActiveClientsConn(params={}) {
    * @note Specially, this will remove all active clients if `client` doesn't
    * contain a valid condition.
    */
-  inst.removeClient = (client) => {
+  inst.removeClients = (cond) => {
     // a definitely true statement, causing all clients are selected
     let whereClasue = '1=1';
     // as a prefix
-    if (client.passkey !== undefined || client.peer_id !== undefined || client.info_hash !== undefined) {
-      if (client.passkey !== undefined) {
-        whereClasue += ' AND passkey=' + mysql.escape(client.passkey);
+    if (cond.passkey !== undefined || cond.peer_id !== undefined || cond.info_hash !== undefined) {
+      if (cond.passkey !== undefined) {
+        whereClasue += ' AND passkey=' + mysql.escape(cond.passkey);
       }
-      if (client.peer_id !== undefined) {
-        whereClasue += ' AND peer_id=' + mysql.escape(client.peer_id);
+      if (cond.peer_id !== undefined) {
+        whereClasue += ' AND peer_id=' + mysql.escape(cond.peer_id);
       }
-      if (client.info_hash !== undefined) {
-        whereClasue += ' AND info_hash=' + mysql.escape(client.info_hash);
+      if (cond.info_hash !== undefined) {
+        whereClasue += ' AND info_hash=' + mysql.escape(cond.info_hash);
       }
     }
     inst.conn.query({
