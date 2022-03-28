@@ -52,13 +52,13 @@ function _ActiveClientsConn(params={}) {
   let inst = MySQLConn(params);
 
   /**
-   * Initialize the database.
+   * Initialize the database synchronously.
    * @note This is a destructive operation that will erase all previous data and
    * reset the database to a default state.
-   * @returns 
+   * @deprecated Please use asynchronous functions instead.
    */
   // It leads to a callback hell, and needs to be fixed later.
-  inst.initialize = () => {
+  inst.initializeSync = () => {
     // NOTE: You can't use `inst.query` here.
     inst.conn.query({
       sql: `DROP TABLE IF EXISTS ${mysql.escapeId(inst.tbl)}`,
@@ -77,10 +77,10 @@ function _ActiveClientsConn(params={}) {
   };
 
   /**
-   * Add an active client to the database.
-   * @returns
+   * Add an active client to the database synchronously.
+   * @deprecated Please use asynchronous functions instead.
    */
-  inst.addClient = (client) => {
+  inst.addClientSync = (client) => {
     if (client.passkey === undefined) {
       throw ReferenceError('property passkey is not defined');
     }
@@ -101,7 +101,7 @@ function _ActiveClientsConn(params={}) {
   };
 
   /**
-   * Remove active clients from the database.
+   * Remove active clients from the database synchronously.
    * @param cond Conditions of the clients to be removed.
    * 
    * A condition is a valid condition only when its field is one of "passkey",
@@ -112,8 +112,9 @@ function _ActiveClientsConn(params={}) {
    * them.
    * @note Specially, this will remove all active clients if `client` doesn't
    * contain a valid condition.
+   * @deprecated Please use asynchronous functions instead.
    */
-  inst.removeClients = (cond) => {
+  inst.removeClientsSync = (cond) => {
     // a definitely true statement, causing all clients are selected
     let whereClasue = '1=1';
     // as a prefix
@@ -137,7 +138,7 @@ function _ActiveClientsConn(params={}) {
   };
 
   /**
-   * Query active clients from the database.
+   * Query active clients from the database synchronously.
    * @param cond Conditions of the target clients.
    * 
    * A condition is a valid condition only when its field is one of "passkey",
@@ -148,8 +149,9 @@ function _ActiveClientsConn(params={}) {
    * them.
    * @note Specially, this will return all active clients if `client` doesn't
    * contain a valid condition.
+   * @deprecated Please use asynchronous functions instead.
    */
-  inst.queryClients = (cond) => {
+  inst.queryClientsSync = (cond) => {
     // a definitely true statement, causing all clients are selected
     let whereClasue = '1=1';
     // as a prefix
