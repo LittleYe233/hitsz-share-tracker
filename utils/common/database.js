@@ -27,19 +27,37 @@ function MySQLConn(params) {
     tbl: params.tbl
   };
 
-  inst.connect = (...args) => {
-    inst.conn = mysql.createConnection({
-      host: inst.host,
-      port: inst.port,
-      user: inst.user,
-      password: inst.pass,
-      database: inst.db
+  /**
+   * Connect to the database asynchronously.
+   * @returns a promise returning a `MySQL.Connection` if fulfilled
+   */
+  inst.connect = async (...args) => {
+    return new Promise((resolve, reject) => {
+      pmysql.createConnection({
+        host: inst.host,
+        port: inst.port,
+        user: inst.user,
+        password: inst.pass,
+        database: inst.db
+      })
+        .then(conn => {
+          inst.conn = conn;
+          inst.disconnect = inst.conn.end;
+          resolve(conn);
+        })
+        .catch(err => reject({
+          code: err.code,
+          errno: err.errno,
+          fatal: err.fatal,
+          sql: err.sql,
+          sqlState: err.sqlState,
+          sqlMessage: err.sqlMessage
+        }));
     });
-
-    inst.disconnect = inst.conn.end;
-
-    return inst.conn.connect(...args);
   };
+
+  inst.disconnect = (options) => inst.conn.end(options);
+  inst.query = (...args) => inst.conn.query(...args);
 
   return inst;
 }
@@ -51,71 +69,30 @@ function _ActiveClientsConn(params={}) {
   /** @type {import('./database')._ActiveClientsConn} */
   let inst = MySQLConn(params);
 
-  /// These asynchronous functions are currrently under maintenance.
-
-  /**
-   * Connect to the database asynchronously.
-   * @returns
-   */
-  inst.connect = (...args) => {
-    inst.conn = mysql.createConnection({
-      host: inst.host,
-      port: inst.port,
-      user: inst.user,
-      password: inst.pass,
-      database: inst.db
-    });
-
-    inst.disconnect = inst.conn.end;
-
-    return inst.conn.connect(...args);
-  };
-
   /**
    * Initialize the database asynchronously.
    * @note This is a destructive operation that will erase all previous data and
    * reset the database to a default state.
-   * @returns
+   * @returns a promise returning an array of results of two statements if fulfilled
    */
-  inst.initialize = () => {
-    inst.conn.query({
-      sql: `DROP TABLE IF EXISTS ${mysql.escapeId(inst.tbl)}`,
-    }, (err, results, fields) => {
-      // `DROP TABLE` can't be rollbacked
-      if (err) { throw err; }
-      inst.conn.query({
-        sql: `CREATE TABLE ${mysql.escapeId(inst.tbl)} (\`passkey\` CHAR(16) NOT NULL, \`peer_id\` CHAR(20) NOT NULL, \`info_hash\` CHAR(20) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8`
-      }, (err, results, fields) => {
-        if (err) { throw err; }
-        // It doesn't need a commit.
-        // execute successfully
-        return results;
-      });
-    });
-  };
+  inst.initialize = () => Promise.all([
+    inst.conn.query(`DROP TABLE IF EXISTS ${mysql.escapeId(inst.tbl)}`),
+    inst.conn.query(`CREATE TABLE ${mysql.escapeId(inst.tbl)} (\`passkey\` CHAR(16) NOT NULL, \`peer_id\` CHAR(20) NOT NULL, \`info_hash\` CHAR(20) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8`)
+  ]);
 
   /**
    * Add an active client to the database asynchronously.
-   * @returns
+   * @returns a promise returning the result of the statement
    */
   inst.addClient = (client) => {
-    if (client.passkey === undefined) {
-      throw ReferenceError('property passkey is not defined');
+    for (let k of ['passkey', 'peer_id', 'info_hash']) {
+      if (client[k] === undefined) {
+        Promise.reject(ReferenceError(`property ${k} is not defined`));
+      }
     }
-    if (client.peer_id === undefined) {
-      throw ReferenceError('property peer_id is not defined');
-    }
-    if (client.info_hash === undefined) {
-      throw ReferenceError('property info_hash is not defined');
-    }
-    inst.conn.query({
-      sql: `INSERT INTO ${mysql.escapeId(inst.tbl)} (passkey, peer_id, info_hash) VALUES (?, ?, ?)`
-    },
-    [client.passkey, client.peer_id, client.info_hash],
-    (err, results, fields) => {
-      if (err) { throw err; }
-      return results;
-    });
+    return inst.conn.query(
+      `INSERT INTO ${mysql.escapeId(inst.tbl)} (passkey, peer_id, info_hash) VALUES (?, ?, ?)`,
+      [client.passkey, client.peer_id, client.info_hash]);
   };
 
   /**
@@ -130,7 +107,7 @@ function _ActiveClientsConn(params={}) {
    * them.
    * @note Specially, this will remove all active clients if `client` doesn't
    * contain a valid condition.
-   * @returns
+   * @returns a promise returning the result of the statement if fulfilled
    */
   inst.removeClients = (cond) => {
     // a definitely true statement, causing all clients are selected
@@ -147,12 +124,7 @@ function _ActiveClientsConn(params={}) {
         whereClasue += ' AND info_hash=' + mysql.escape(cond.info_hash);
       }
     }
-    inst.conn.query({
-      sql: `DELETE FROM ${mysql.escapeId(inst.tbl)} WHERE ` + whereClasue
-    }, (err, results, fields) => {
-      if (err) { throw err; }
-      return results;
-    });
+    return inst.conn.query(`DELETE FROM ${mysql.escapeId(inst.tbl)} WHERE ` + whereClasue);
   };
 
   /**
@@ -167,7 +139,7 @@ function _ActiveClientsConn(params={}) {
    * them.
    * @note Specially, this will return all active clients if `client` doesn't
    * contain a valid condition.
-   * @returns
+   * @returns a promise returning the result of the statement if fulfilled
    */
   inst.queryClients = (cond) => {
     // a definitely true statement, causing all clients are selected
@@ -184,12 +156,7 @@ function _ActiveClientsConn(params={}) {
         whereClasue += ' AND info_hash=' + mysql.escape(cond.info_hash);
       }
     }
-    inst.conn.query({
-      sql: `SELECT passkey, peer_id, info_hash FROM ${mysql.escapeId(inst.tbl)} WHERE ` + whereClasue
-    }, (err, results, fields) => {
-      if (err) { throw err; }
-      return results;
-    });
+    return inst.conn.query(`SELECT passkey, peer_id, info_hash FROM ${mysql.escapeId(inst.tbl)} WHERE ` + whereClasue);
   };
 
   return inst;

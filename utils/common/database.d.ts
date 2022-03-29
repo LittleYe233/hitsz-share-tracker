@@ -9,6 +9,8 @@
 /** */
 
 import * as mysql from 'mysql';
+import * as pmysql from 'promise-mysql';
+import * as Bluebird from 'bluebird';
 import { BasicConnectionConfig, BasicMySQLConfig } from './config';
 
 type _DatabaseConn = BasicConnectionConfig & {
@@ -26,17 +28,18 @@ export type _MySQLConn = _DatabaseConn & {
   tbl?: string;
 
   // important for internal use
-  conn?: mysql.Connection;
+  conn?: pmysql.Connection;
 
   // methods
   connect?(...args: any[]): Promise<unknown>;
-  disconnect?(...args: any[]): Promise<unknown>;
+  disconnect?(options?: mysql.QueryOptions): Bluebird<void>;
+  query?(options: string, values?: unknown): Bluebird<unknown>
 }
 
 type _ActiveClientsSpecMethods = {
   initialize?(): Promise<unknown>;
-  addClient?(client: { passkey: string, peer_id: string, info_hash: string }): Promise<unknown>;
-  removeClients?(cond: { passkey?: string, peer_id?: string, info_hash?: string }): Promise<unknown>;
+  addClient?(client: { passkey: string, peer_id: string, info_hash: string }): Promise<unknown> | Bluebird<unknown>;
+  removeClients?(cond: { passkey?: string, peer_id?: string, info_hash?: string }): Bluebird<unknown>;
   queryClients?(cond: { passkey?: string, peer_id?: string, info_hash?: string }): Promise<unknown>;
 };
 
