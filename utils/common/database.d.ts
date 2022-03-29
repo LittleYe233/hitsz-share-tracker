@@ -29,16 +29,15 @@ export type _MySQLConn = _DatabaseConn & {
   conn?: mysql.Connection;
 
   // methods
-  connectSync?(...args: any[]): unknown;
-  disconnect?(...args: any[]): unknown;
-  query?: mysql.QueryFunction;
+  connect?(...args: any[]): Promise<unknown>;
+  disconnect?(...args: any[]): Promise<unknown>;
 }
 
 type _ActiveClientsSpecMethods = {
-  initializeSync?(): unknown;
-  addClientSync?(client: { passkey: string, peer_id: string, info_hash: string }): unknown;
-  removeClientsSync?(cond: { passkey?: string, peer_id?: string, info_hash?: string }): unknown;
-  queryClientsSync?(cond: { passkey?: string, peer_id?: string, info_hash?: string }): unknown;
+  initialize?(): Promise<unknown>;
+  addClient?(client: { passkey: string, peer_id: string, info_hash: string }): Promise<unknown>;
+  removeClients?(cond: { passkey?: string, peer_id?: string, info_hash?: string }): Promise<unknown>;
+  queryClients?(cond: { passkey?: string, peer_id?: string, info_hash?: string }): Promise<unknown>;
 };
 
 export type _ActiveClientsConfig = BasicMySQLConfig;

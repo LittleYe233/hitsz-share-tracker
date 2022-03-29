@@ -11,6 +11,7 @@
 /** */
 
 const mysql = require('mysql');
+const pmysql = require('promise-mysql');
 
 /**
  * @param {import('./config').BasicMySQLConfig} params
@@ -26,7 +27,7 @@ function MySQLConn(params) {
     tbl: params.tbl
   };
 
-  inst.connectSync = (...args) => {
+  inst.connect = (...args) => {
     inst.conn = mysql.createConnection({
       host: inst.host,
       port: inst.port,
@@ -36,7 +37,6 @@ function MySQLConn(params) {
     });
 
     inst.disconnect = inst.conn.end;
-    inst.query = inst.conn.query;
 
     return inst.conn.connect(...args);
   };
@@ -51,13 +51,13 @@ function _ActiveClientsConn(params={}) {
   /** @type {import('./database')._ActiveClientsConn} */
   let inst = MySQLConn(params);
 
-  /// These synchronous functions are deprecated and archived.
+  /// These asynchronous functions are currrently under maintenance.
 
   /**
-   * Connect to the database synchronously.
-   * @deprecated Please use asynchronous functions instead. 
+   * Connect to the database asynchronously.
+   * @returns
    */
-  inst.connectSync = (...args) => {
+  inst.connect = (...args) => {
     inst.conn = mysql.createConnection({
       host: inst.host,
       port: inst.port,
@@ -67,20 +67,17 @@ function _ActiveClientsConn(params={}) {
     });
 
     inst.disconnect = inst.conn.end;
-    inst.query = inst.conn.query;
 
     return inst.conn.connect(...args);
   };
 
   /**
-   * Initialize the database synchronously.
+   * Initialize the database asynchronously.
    * @note This is a destructive operation that will erase all previous data and
    * reset the database to a default state.
-   * @deprecated Please use asynchronous functions instead.
+   * @returns
    */
-  // It leads to a callback hell, and needs to be fixed later.
-  inst.initializeSync = () => {
-    // NOTE: You can't use `inst.query` here.
+  inst.initialize = () => {
     inst.conn.query({
       sql: `DROP TABLE IF EXISTS ${mysql.escapeId(inst.tbl)}`,
     }, (err, results, fields) => {
@@ -98,10 +95,10 @@ function _ActiveClientsConn(params={}) {
   };
 
   /**
-   * Add an active client to the database synchronously.
-   * @deprecated Please use asynchronous functions instead.
+   * Add an active client to the database asynchronously.
+   * @returns
    */
-  inst.addClientSync = (client) => {
+  inst.addClient = (client) => {
     if (client.passkey === undefined) {
       throw ReferenceError('property passkey is not defined');
     }
@@ -122,7 +119,7 @@ function _ActiveClientsConn(params={}) {
   };
 
   /**
-   * Remove active clients from the database synchronously.
+   * Remove active clients from the database asynchronously.
    * @param cond Conditions of the clients to be removed.
    * 
    * A condition is a valid condition only when its field is one of "passkey",
@@ -133,9 +130,9 @@ function _ActiveClientsConn(params={}) {
    * them.
    * @note Specially, this will remove all active clients if `client` doesn't
    * contain a valid condition.
-   * @deprecated Please use asynchronous functions instead.
+   * @returns
    */
-  inst.removeClientsSync = (cond) => {
+  inst.removeClients = (cond) => {
     // a definitely true statement, causing all clients are selected
     let whereClasue = '1=1';
     // as a prefix
@@ -159,7 +156,7 @@ function _ActiveClientsConn(params={}) {
   };
 
   /**
-   * Query active clients from the database synchronously.
+   * Query active clients from the database asynchronously.
    * @param cond Conditions of the target clients.
    * 
    * A condition is a valid condition only when its field is one of "passkey",
@@ -170,9 +167,9 @@ function _ActiveClientsConn(params={}) {
    * them.
    * @note Specially, this will return all active clients if `client` doesn't
    * contain a valid condition.
-   * @deprecated Please use asynchronous functions instead.
+   * @returns
    */
-  inst.queryClientsSync = (cond) => {
+  inst.queryClients = (cond) => {
     // a definitely true statement, causing all clients are selected
     let whereClasue = '1=1';
     // as a prefix
