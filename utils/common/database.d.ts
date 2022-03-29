@@ -29,8 +29,8 @@ export type _MySQLConn = _DatabaseConn & {
   conn?: mysql.Connection;
 
   // methods
-  connect?(...args: unknown[]): void;
-  disconnect?(...args: unknown[]): void;
+  connectSync?(...args: any[]): unknown;
+  disconnect?(...args: any[]): unknown;
   query?: mysql.QueryFunction;
 }
 

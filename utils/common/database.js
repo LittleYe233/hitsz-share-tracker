@@ -26,7 +26,7 @@ function MySQLConn(params) {
     tbl: params.tbl
   };
 
-  inst.connect = (...args) => {
+  inst.connectSync = (...args) => {
     inst.conn = mysql.createConnection({
       host: inst.host,
       port: inst.port,
@@ -50,6 +50,27 @@ function MySQLConn(params) {
 function _ActiveClientsConn(params={}) {
   /** @type {import('./database')._ActiveClientsConn} */
   let inst = MySQLConn(params);
+
+  /// These synchronous functions are deprecated and archived.
+
+  /**
+   * Connect to the database synchronously.
+   * @deprecated Please use asynchronous functions instead. 
+   */
+  inst.connectSync = (...args) => {
+    inst.conn = mysql.createConnection({
+      host: inst.host,
+      port: inst.port,
+      user: inst.user,
+      password: inst.pass,
+      database: inst.db
+    });
+
+    inst.disconnect = inst.conn.end;
+    inst.query = inst.conn.query;
+
+    return inst.conn.connect(...args);
+  };
 
   /**
    * Initialize the database synchronously.
