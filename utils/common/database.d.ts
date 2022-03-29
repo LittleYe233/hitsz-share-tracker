@@ -32,8 +32,6 @@ export type _MySQLConn = _DatabaseConn & {
 
   // methods
   connect?(...args: any[]): Promise<unknown>;
-  disconnect?(options?: mysql.QueryOptions): Bluebird<void>;
-  query?(options: string, values?: unknown): Bluebird<unknown>
 }
 
 type _ActiveClientsSpecMethods = {

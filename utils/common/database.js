@@ -56,9 +56,6 @@ function MySQLConn(params) {
     });
   };
 
-  inst.disconnect = (options) => inst.conn.end(options);
-  inst.query = (...args) => inst.conn.query(...args);
-
   return inst;
 }
 
