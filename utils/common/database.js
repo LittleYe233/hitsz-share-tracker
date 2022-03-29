@@ -113,17 +113,23 @@ function _ActiveClientsConn(params={}) {
     // a definitely true statement, causing all clients are selected
     let whereClasue = '1=1';
     // as a prefix
-    if (cond.passkey !== undefined || cond.peer_id !== undefined || cond.info_hash !== undefined) {
-      if (cond.passkey !== undefined) {
-        whereClasue += ' AND passkey=' + mysql.escape(cond.passkey);
-      }
-      if (cond.peer_id !== undefined) {
-        whereClasue += ' AND peer_id=' + mysql.escape(cond.peer_id);
-      }
-      if (cond.info_hash !== undefined) {
-        whereClasue += ' AND info_hash=' + mysql.escape(cond.info_hash);
-      }
+    let cond1 = cond === undefined, cond2 = null;
+    if (!cond1) {
+      cond2 = (cond.passkey !== undefined) || (cond.peer_id !== undefined) || (cond.info_hash !== undefined);
     }
+    if (cond1 || cond2) {
+      if (!cond1) {
+        if (cond.passkey !== undefined) {
+          whereClasue += ' AND passkey=' + mysql.escape(cond.passkey);
+        }
+        if (cond.peer_id !== undefined) {
+          whereClasue += ' AND peer_id=' + mysql.escape(cond.peer_id);
+        }
+        if (cond.info_hash !== undefined) {
+          whereClasue += ' AND info_hash=' + mysql.escape(cond.info_hash);
+        }
+      }
+    } else return Promise.reject(TypeError('unsupported type'));
     return inst.conn.query(`DELETE FROM ${mysql.escapeId(inst.tbl)} WHERE ` + whereClasue);
   };
 
@@ -145,17 +151,23 @@ function _ActiveClientsConn(params={}) {
     // a definitely true statement, causing all clients are selected
     let whereClasue = '1=1';
     // as a prefix
-    if (cond.passkey !== undefined || cond.peer_id !== undefined || cond.info_hash !== undefined) {
-      if (cond.passkey !== undefined) {
-        whereClasue += ' AND passkey=' + mysql.escape(cond.passkey);
-      }
-      if (cond.peer_id !== undefined) {
-        whereClasue += ' AND peer_id=' + mysql.escape(cond.peer_id);
-      }
-      if (cond.info_hash !== undefined) {
-        whereClasue += ' AND info_hash=' + mysql.escape(cond.info_hash);
-      }
+    let cond1 = cond === undefined, cond2 = null;
+    if (!cond1) {
+      cond2 = (cond.passkey !== undefined) || (cond.peer_id !== undefined) || (cond.info_hash !== undefined);
     }
+    if (cond1 || cond2) {
+      if (!cond1) {
+        if (cond.passkey !== undefined) {
+          whereClasue += ' AND passkey=' + mysql.escape(cond.passkey);
+        }
+        if (cond.peer_id !== undefined) {
+          whereClasue += ' AND peer_id=' + mysql.escape(cond.peer_id);
+        }
+        if (cond.info_hash !== undefined) {
+          whereClasue += ' AND info_hash=' + mysql.escape(cond.info_hash);
+        }
+      }
+    } else return Promise.reject(TypeError('unsupported type'));
     return inst.conn.query(`SELECT passkey, peer_id, info_hash FROM ${mysql.escapeId(inst.tbl)} WHERE ` + whereClasue);
   };
 

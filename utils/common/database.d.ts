@@ -39,8 +39,8 @@ export type _MySQLConn = _DatabaseConn & {
 type _ActiveClientsSpecMethods = {
   initialize?(): Promise<unknown>;
   addClient?(client: { passkey: string, peer_id: string, info_hash: string }): Promise<unknown> | Bluebird<unknown>;
-  removeClients?(cond: { passkey?: string, peer_id?: string, info_hash?: string }): Bluebird<unknown>;
-  queryClients?(cond: { passkey?: string, peer_id?: string, info_hash?: string }): Promise<unknown>;
+  removeClients?(cond: { passkey?: string, peer_id?: string, info_hash?: string }): Promise<unknown> | Bluebird<unknown>;
+  queryClients?(cond: { passkey?: string, peer_id?: string, info_hash?: string }): Promise<unknown> | Bluebird<unknown>;
 };
 
 export type _ActiveClientsConfig = BasicMySQLConfig;
