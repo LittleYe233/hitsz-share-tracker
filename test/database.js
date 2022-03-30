@@ -1,5 +1,6 @@
 // Note: You need chalk@4.1.2. See https://stackoverflow.com/a/70425265/12002560
 const chalk = require('chalk');
+const { exit } = require('process');
 const database = require('../utils/common/database');
 
 /* Custom log styles */
@@ -128,5 +129,5 @@ const ERROR = error('ERR');
 
   log(INFO, '=== Active Clients database END ===');
 
-  return 0;
+  exit(0);
 })();
