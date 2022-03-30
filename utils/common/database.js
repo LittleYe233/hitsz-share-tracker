@@ -17,7 +17,7 @@ const pmysql = require('promise-mysql');
  * @param {import('./config').BasicMySQLConfig} params
  */
 function MySQLConn(params) {
-  /** @type {import('./database')._MySQLConn} */
+  /** @type {import('./database').MySQLConn} */
   let inst = {
     host: params.host,
     port: params.port,
@@ -42,7 +42,6 @@ function MySQLConn(params) {
       })
         .then(conn => {
           inst.conn = conn;
-          inst.disconnect = inst.conn.end;
           resolve(conn);
         })
         .catch(err => reject({
@@ -60,11 +59,17 @@ function MySQLConn(params) {
 }
 
 /**
- * @param {import('./database')._ActiveClientsConfig} params
+ * @param {import('./database').ActiveClientsConfig} params
  */
-function _ActiveClientsConn(params={}) {
-  /** @type {import('./database')._ActiveClientsConn} */
+function ActiveClientsConn(params={}) {
+  /** @type {import('./database').ActiveClientsConn} */
   let inst = MySQLConn(params);
+
+  /**
+   * Get hash string of an active client.
+   * @note It is used for primary key to avoid duplication.
+   */
+  inst._gethash = (client) => client.passkey + client.peer_id + client.info_hash;
 
   /**
    * Initialize the database asynchronously.
@@ -74,7 +79,8 @@ function _ActiveClientsConn(params={}) {
    */
   inst.initialize = () => Promise.all([
     inst.conn.query(`DROP TABLE IF EXISTS ${mysql.escapeId(inst.tbl)}`),
-    inst.conn.query(`CREATE TABLE ${mysql.escapeId(inst.tbl)} (\`passkey\` CHAR(16) NOT NULL, \`peer_id\` CHAR(20) NOT NULL, \`info_hash\` CHAR(20) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8`)
+    // `hashval` is for primary key to avoid duplication
+    inst.conn.query(`CREATE TABLE ${mysql.escapeId(inst.tbl)} (\`passkey\` CHAR(16) NOT NULL, \`peer_id\` CHAR(20) NOT NULL, \`info_hash\` CHAR(20) NOT NULL, \`_hashval\` CHAR(56)) ENGINE=InnoDB DEFAULT CHARSET=utf8`)
   ]);
 
   /**
@@ -87,9 +93,10 @@ function _ActiveClientsConn(params={}) {
         Promise.reject(ReferenceError(`property ${k} is not defined`));
       }
     }
+
     return inst.conn.query(
-      `INSERT INTO ${mysql.escapeId(inst.tbl)} (passkey, peer_id, info_hash) VALUES (?, ?, ?)`,
-      [client.passkey, client.peer_id, client.info_hash]);
+      `INSERT INTO ${mysql.escapeId(inst.tbl)} (passkey, peer_id, info_hash, _hashval) VALUES (?, ?, ?, ?)`,
+      [client.passkey, client.peer_id, client.info_hash, inst._gethash(client)]);
   };
 
   /**
@@ -127,6 +134,7 @@ function _ActiveClientsConn(params={}) {
         }
       }
     } else return Promise.reject(TypeError('unsupported type'));
+
     return inst.conn.query(`DELETE FROM ${mysql.escapeId(inst.tbl)} WHERE ` + whereClasue);
   };
 
@@ -165,6 +173,7 @@ function _ActiveClientsConn(params={}) {
         }
       }
     } else return Promise.reject(TypeError('unsupported type'));
+
     return inst.conn.query(`SELECT passkey, peer_id, info_hash FROM ${mysql.escapeId(inst.tbl)} WHERE ` + whereClasue);
   };
 
@@ -173,5 +182,5 @@ function _ActiveClientsConn(params={}) {
 
 module.exports = {
   MySQLConn: MySQLConn,
-  ActiveClientsConn: _ActiveClientsConn
+  ActiveClientsConn: ActiveClientsConn
 };
