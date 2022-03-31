@@ -15,7 +15,7 @@ const fs = require('fs');
 const path = require('path');
 const { merge } = require('lodash');
 
-const DEFAULT_CONFIG_PATH = '../../config.yml';
+const DEFAULT_CONFIG_PATH = './config.yml';  // relative to `app.js`
 const DEFAULT_CONFIG = {
   client: {
     databases: {
@@ -25,8 +25,7 @@ const DEFAULT_CONFIG = {
       },
       active_clients: {
         host: 'localhost',
-        port: 6379,
-        db: 0
+        port: 6379
       }
     }
   },
@@ -38,8 +37,7 @@ const DEFAULT_CONFIG = {
       },
       active_clients: {
         host: 'localhost',
-        port: 6379,
-        db: 0
+        port: 6379
       }
     }
   }
