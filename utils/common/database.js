@@ -177,6 +177,8 @@ function ActiveClientsConn(params={}) {
     return inst.conn.query(`SELECT passkey, peer_id, info_hash FROM ${mysql.escapeId(inst.tbl)} WHERE ` + whereClasue);
   };
 
+  inst.queryTable = () => inst.conn.query(`SELECT * FROM ${mysql.escapeId(inst.tbl)}`);
+
   return inst;
 }
 

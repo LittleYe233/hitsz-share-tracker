@@ -32,6 +32,7 @@ type ActiveClientsSpecMethods = {
   addClient?(client: { passkey: string, peer_id: string, info_hash: string }): Promise<unknown> | Bluebird<unknown>;
   removeClients?(cond: { passkey?: string, peer_id?: string, info_hash?: string }): Promise<unknown> | Bluebird<unknown>;
   queryClients?(cond: { passkey?: string, peer_id?: string, info_hash?: string }): Promise<unknown> | Bluebird<unknown>;
+  queryTable?(): Promise<unknown> | Bluebird<unknown>;
 };
 
 export type ActiveClientsConfig = BasicMySQLConfig;
