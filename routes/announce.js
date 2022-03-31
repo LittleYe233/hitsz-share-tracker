@@ -1,6 +1,13 @@
 const url = require('url');
+const chalk = require('chalk');
+const mysql = require('promise-mysql');
 const { validate } = require('../utils/announce/process');
+const { parseProjectConfig } = require('../utils/common/config');
+const { ActiveClientsConn } = require('../utils/common/database');
 const router = require('express-promise-router')();
+
+const cfg = parseProjectConfig();
+console.log(chalk.blue('DEBUG'), JSON.stringify(cfg));
 
 router.get('/announce', async function(req, res, next) {
   // process
@@ -13,7 +20,21 @@ router.get('/announce', async function(req, res, next) {
   // validate
   const validated = validate(params);
   // communicate with databases
-  // TODO
+  const conn = ActiveClientsConn(cfg.server.databases.active_clients);
+  let logstr = `Active client request: (${mysql.escape(params.passkey)}, ${mysql.escape(params.peer_id)}, ${mysql.escape(params.info_hash)})`;
+  console.log(chalk.green('INFO'), logstr);
+  try {
+    await conn.connect();
+    await conn.addClient({
+      passkey: params.passkey,
+      peer_id: params.peer_id,
+      info_hash: params.info_hash
+    });
+    await conn.conn.end();
+  } catch (e) {
+    console.log(chalk.red('ERR'), 'Reason:', e);
+    return res.status(500).end(JSON.stringify(e));
+  }
 
   // send responses
   res.writeHead(200, {'Content-Type': 'text/plain'});
