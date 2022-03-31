@@ -35,7 +35,13 @@ type ActiveClientsSpecMethods = {
   queryTable?(): Promise<unknown> | Bluebird<unknown>;
 };
 
-export type ActiveClientsConfig = BasicMySQLConfig;
+type AuthUsersSpecMethods = {};
 
-export type AuthUsersConn = MySQLConn;
-export type ActiveClientsConn = MySQLConn & ActiveClientsSpecMethods;
+export type ActiveClientsConfig = BasicMySQLConfig;
+export type AuthUsersConfig = BasicMySQLConfig;
+
+export type _AuthUsersConn = MySQLConn & AuthUsersSpecMethods;
+export type _ActiveClientsConn = MySQLConn & ActiveClientsSpecMethods;
+
+export function AuthUsersConn(params: AuthUsersConfig): _AuthUsersConn;
+export function ActiveClientsConn(params: ActiveClientsConfig): _ActiveClientsConn;

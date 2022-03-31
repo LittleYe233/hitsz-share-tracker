@@ -62,7 +62,7 @@ function MySQLConn(params) {
  * @param {import('./database').ActiveClientsConfig} params
  */
 function ActiveClientsConn(params={}) {
-  /** @type {import('./database').ActiveClientsConn} */
+  /** @type {import('./database')._ActiveClientsConn} */
   let inst = MySQLConn(params);
 
   /**
