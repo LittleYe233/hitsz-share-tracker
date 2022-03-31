@@ -30,7 +30,8 @@ const ERROR = error('ERR');
     { passkey: '2', peer_id: 'b', info_hash: 'B' },
     { passkey: '3', peer_id: 'b', info_hash: 'B' },
     { passkey: '3', peer_id: 'c', info_hash: 'B' },
-    { passkey: '3', peer_id: 'c', info_hash: 'C' }
+    { passkey: '3', peer_id: 'c', info_hash: 'C' },
+    { passkey: '3', peer_id: 'c', info_hash: 'C' }  // duplication
   ];
   const dataEntriesR = [
     { passkey: '3', peer_id: 'c', info_hash: 'C'},
