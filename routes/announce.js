@@ -1,4 +1,3 @@
-const url = require('url');
 const chalk = require('chalk');
 const mysql = require('promise-mysql');
 const { validate } = require('../utils/announce/process');
@@ -11,7 +10,7 @@ console.log(chalk.blue('DEBUG'), JSON.stringify(cfg));
 
 router.get('/announce', async function(req, res, next) {
   // process
-  let params = url.parse(req.url, true).query;
+  let params = req.query;
   params.ip = params.ip || req.ip;  // ip must exist
   // parse IPv6 & IPv4 mixed form to standard IPv4
   if (params.ip.substring(0, 7) === '::ffff:') {
@@ -43,7 +42,7 @@ router.get('/announce', async function(req, res, next) {
 
 router.get('/_test_announce', function(req, res, next) {
   // process
-  let params = url.parse(req.url, true).query;
+  let params = req.query;
   params.ip = params.ip || req.ip;  // ip must exist
   // parse IPv6 & IPv4 mixed form to standard IPv4
   if (params.ip.substring(0, 7) === '::ffff:') {
