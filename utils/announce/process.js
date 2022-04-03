@@ -29,6 +29,12 @@ const CLIENT_ID_WHITELIST = [
   'UT'    // μTorrent
 ];
 
+/** @type {import('./process').dumpEscaped} */
+function dumpEscaped(escaped) {
+  let n;
+  return Array.from(unescape(escaped)).map(c => (n = c.charCodeAt(0).toString(16)).length === 1 ? '0' + n : n).join('');
+}
+
 /** @type {import('./process').validate}  */
 function validate(params) {
   /** @type {import('./process').RawResp} */
@@ -45,14 +51,17 @@ function validate(params) {
     assert.match(params.passkey, /^[0-9a-f]{16}$/i, RangeError('property passkey should represent a 16-digit hexadecimal number'));
 
     // `params.info_hash`
+    // dump to an SHA-1 hash string, with length of 40
+    params.info_hash = dumpEscaped(params.info_hash);
     assert(typeof params.info_hash !== 'undefined', ReferenceError('property info_hash is not defined'));
     assert(typeof params.info_hash === 'string', TypeError('property info_hash should be a string'));
-    assert.match(params.info_hash, /^[0-9a-f]{20}$/i, RangeError('property info_hash should represent a 20-digit hexadecimal number'));
+    assert.match(params.info_hash, /^[0-9a-f]{40}$/i, RangeError('property info_hash should be with length of 20'));
 
     // `params.peer_id`
+    params.peer_id = params.peer_id.substring(0, 8) + dumpEscaped(params.peer_id.substring(8));
     assert(typeof params.peer_id !== 'undefined', ReferenceError('property peer_id is not defined'));
     assert(typeof params.peer_id === 'string', TypeError('property peer_id should be a string'));
-    assert.match(params.peer_id, /^-[a-z]{2}[0-9]{4}-[0-9]{12}$/i, RangeError('property peer_id should be in Azureus-style'));
+    assert.match(params.peer_id, /^-[a-z]{2}[0-9a-z]{4}-[0-9a-f]{24}$/i, RangeError('property peer_id should be in Azureus-style'));
 
     // `params.port`
     assert(typeof params.port !== 'undefined', ReferenceError('property port is not defined'));

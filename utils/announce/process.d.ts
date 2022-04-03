@@ -41,4 +41,5 @@ export type ValidateReturns = {
   rawResp: RawResp
 };
 
+export function dumpEscaped(escaped: string): string;
 export function validate(params: validateParams): ValidateReturns;
