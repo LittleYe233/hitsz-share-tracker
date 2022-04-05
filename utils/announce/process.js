@@ -88,11 +88,11 @@ function validate(params) {
     assert(params.left >= 0, RangeError('property left should not be negative'));
 
     // `params.compact`
-    params.compact = typeof params.compact === 'undefined' ? 0 : params.compact;
+    params.compact = typeof params.compact === 'undefined' ? 0 : Number(params.compact);
     assert([0, 1].includes(params.compact), RangeError('property compact should be 0 or 1'));
 
     // `params.no_peer_id`
-    params.no_peer_id = typeof params.no_peer_id === 'undefined' ? 0 : params.no_peer_id;
+    params.no_peer_id = typeof params.no_peer_id === 'undefined' ? 0 : Number(params.no_peer_id);
     assert([0, 1].includes(params.no_peer_id), RangeError('property no_peer_id should be 0 or 1'));
 
     // `params.event`
