@@ -12,6 +12,7 @@
 
 const mysql = require('mysql');
 const pmysql = require('promise-mysql');
+const MD5 = require('crypto-js/md5');
 
 /**
  * @param {import('./config').BasicMySQLConfig} params
@@ -66,10 +67,10 @@ function ActiveClientsConn(params={}) {
   let inst = MySQLConn(params);
 
   /**
-   * Get hash string of an active client.
+   * Get the hash string of an active client.
    * @note It is used for primary key to avoid duplication.
    */
-  inst._gethash = (client) => client.passkey + client.peer_id + client.info_hash;
+  inst._gethash = (client) => MD5(client.passkey + client.peer_id + client.info_hash).toString();
 
   /**
    * Initialize the database asynchronously.
@@ -80,7 +81,7 @@ function ActiveClientsConn(params={}) {
   inst.initialize = () => Promise.all([
     inst.conn.query(`DROP TABLE IF EXISTS ${mysql.escapeId(inst.tbl)}`),
     // `hashval` is for primary key to avoid duplication
-    inst.conn.query(`CREATE TABLE ${mysql.escapeId(inst.tbl)} (\`passkey\` CHAR(16) NOT NULL, \`peer_id\` CHAR(20) NOT NULL, \`info_hash\` CHAR(20) NOT NULL, \`_hashval\` CHAR(56), PRIMARY KEY (\`_hashval\`)) ENGINE=InnoDB DEFAULT CHARSET=utf8`)
+    inst.conn.query(`CREATE TABLE ${mysql.escapeId(inst.tbl)} (\`passkey\` CHAR(16) NOT NULL, \`peer_id\` CHAR(32) NOT NULL, \`info_hash\` CHAR(40) NOT NULL, \`_hashval\` CHAR(32), PRIMARY KEY (\`_hashval\`)) ENGINE=InnoDB DEFAULT CHARSET=utf8`)
   ]);
 
   /**
