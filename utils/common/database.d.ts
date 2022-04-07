@@ -27,11 +27,11 @@ export type MySQLConn = DatabaseConn & {
 }
 
 type ActiveClientsSpecMethods = {
-  _gethash?(client: { passkey: string, peer_id: string, info_hash: string }): string;
+  _gethash?(client: { passkey: string, peer_id: string, info_hash: string, ip: string, port: number }): string;
   initialize?(): Promise<unknown>;
-  addClient?(client: { passkey: string, peer_id: string, info_hash: string }): Promise<unknown> | Bluebird<unknown>;
-  removeClients?(cond: { passkey?: string, peer_id?: string, info_hash?: string }): Promise<unknown> | Bluebird<unknown>;
-  queryClients?(cond: { passkey?: string, peer_id?: string, info_hash?: string }): Promise<unknown> | Bluebird<unknown>;
+  addClient?(client: { passkey: string, peer_id: string, info_hash: string, ip: string, port: number }): Promise<unknown> | Bluebird<unknown>;
+  removeClients?(cond: { passkey?: string, peer_id?: string, info_hash?: string, ip?: string, port?: number }): Promise<unknown> | Bluebird<unknown>;
+  queryClients?(cond: { passkey?: string, peer_id?: string, info_hash?: string, ip?: string, port?: number }): Promise<unknown> | Bluebird<unknown>;
   queryTable?(): Promise<unknown> | Bluebird<unknown>;
 };
 

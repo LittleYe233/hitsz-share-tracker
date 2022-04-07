@@ -27,7 +27,9 @@ router.get('/announce', async function(req, res, next) {
     await conn.addClient({
       passkey: params.passkey,
       peer_id: params.peer_id,
-      info_hash: params.info_hash
+      info_hash: params.info_hash,
+      ip: params.ip,
+      port: params.port
     });
     await conn.conn.end();
   } catch (e) {
