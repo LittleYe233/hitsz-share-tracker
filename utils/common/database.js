@@ -100,7 +100,7 @@ function ActiveClientsConn(params={}) {
   inst.addClient = (client) => {
     activeClientsNames.forEach(n => {
       if (client[n] === undefined) {
-        Promise.reject(ReferenceError(`property ${n} is not defined`));
+        Promise.reject(`property ${n} is not defined`);
       }
     });
 
@@ -139,7 +139,7 @@ function ActiveClientsConn(params={}) {
           }
         });
       }
-    } else return Promise.reject(TypeError('unsupported type'));
+    } else return Promise.reject('unsupported type');
 
     return inst.conn.query(`DELETE FROM ${mysql.escapeId(inst.tbl)} WHERE ` + whereClasue);
   };
@@ -174,7 +174,7 @@ function ActiveClientsConn(params={}) {
           }
         });
       }
-    } else return Promise.reject(TypeError('unsupported type'));
+    } else return Promise.reject('unsupported type');
 
     return inst.conn.query(`SELECT passkey, peer_id, info_hash, ip, port FROM ${mysql.escapeId(inst.tbl)} WHERE ` + whereClasue);
   };
