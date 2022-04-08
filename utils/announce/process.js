@@ -13,6 +13,8 @@
 const assert = require('assert');
 const { isIP } = require('net');
 const Bencode = require('bencode-js');
+const { ActiveClientsConn } = require('../common/database');
+const { parseProjectConfig } = require('../common/config');
 
 const DEFAULT_NUMWANT = 50;
 const DEFAULT_INTERVAL = 1200;  // 20 min
@@ -28,6 +30,8 @@ const CLIENT_ID_WHITELIST = [
   'UM',   // μTorrent for Mac
   'UT'    // μTorrent
 ];
+
+const cfg = parseProjectConfig();
 
 /** @type {import('./process').dumpEscaped} */
 function dumpEscaped(escaped) {
@@ -154,6 +158,57 @@ function validate(params) {
   };
 }
 
+/** @type {import('./process').validateAsync} */
+async function validateAsync(params) {
+  try {
+    return validate(params);
+  } catch (e) {
+    return Promise.reject(e);
+  }
+}
+
+/** @type {import('./process').getPeers} */
+async function getPeers(params) {
+  if (typeof params === 'string') {
+    params = { info_hash: params };
+  }
+
+  const conn = ActiveClientsConn(cfg.server.databases.active_clients);
+  /** @type {import('../common/database').ActiveClientsQueryParams[]} */
+  let clients;
+  try {
+    await conn.connect();
+    clients = await conn.queryClients({info_hash: params.info_hash});
+    await conn.conn.end();
+  } catch (e) {
+    return Promise.reject(e);
+  }
+
+  // NOTE: This seems to be a bug of TypeScript, for it thinks the anonymous
+  // function inside should has an explicit function body (including statements)
+  // instead of an object.
+  let peers = clients.map(v => {
+    /** @type {import('./process').Peer} */
+    let ret = {
+      'peer id': v.peer_id,
+      ip: v.ip,
+      port: v.port
+    };
+    return ret;
+  });
+
+  let completeNum = clients.filter(v => v.left == 0).length;
+  let incompleteNum = clients.length - completeNum;
+
+  return {
+    peers: peers,
+    complete: completeNum,
+    incomplete: incompleteNum
+  };
+}
+
 module.exports = {
-  validate: validate
+  validate: validate,
+  validateAsync: validateAsync,
+  getPeers: getPeers
 };
