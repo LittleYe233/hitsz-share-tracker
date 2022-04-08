@@ -1,6 +1,7 @@
 const chalk = require('chalk');
 const mysql = require('promise-mysql');
-const { validate } = require('../utils/announce/process');
+const Bencode = require('bencode-js');
+const { validate, validateAsync, getPeers } = require('../utils/announce/process');
 const { parseProjectConfig } = require('../utils/common/config');
 const { ActiveClientsConn } = require('../utils/common/database');
 const router = require('express-promise-router')();
@@ -17,11 +18,15 @@ router.get('/announce', async function(req, res, next) {
     params.ip = params.ip.substring(7);
   }
   // validate
-  const validated = validate(params);
+  const validated = await validateAsync(params);
+  
   // communicate with databases
+  const activeClientsNames = ['passkey', 'peer_id', 'info_hash', 'ip', 'port', 'left'];
+  const activeClientsMembers = client => activeClientsNames.map(k => client[k]);
+
   const conn = ActiveClientsConn(cfg.server.databases.active_clients);
-  let logstr = `Active client request: (${mysql.escape(params.passkey)}, ${mysql.escape(params.peer_id)}, ${mysql.escape(params.info_hash)})`;
-  console.log(chalk.green('INFO'), logstr);
+  let logstr = 'Active client request:';
+  console.log(chalk.green('INFO'), logstr, activeClientsMembers(params));
   try {
     await conn.connect();
     await conn.addClient({
@@ -29,17 +34,25 @@ router.get('/announce', async function(req, res, next) {
       peer_id: params.peer_id,
       info_hash: params.info_hash,
       ip: params.ip,
-      port: params.port
+      port: params.port,
+      left: params.left
     });
     await conn.conn.end();
   } catch (e) {
     console.log(chalk.red('ERR'), 'Reason:', e);
-    return res.status(500).end(JSON.stringify(e));
+    return res.status(500).end(JSON.stringify(e) === '{}' ? JSON.stringify({
+      name: e.name,
+      message: e.message
+    }) : JSON.stringify(e));
   }
+  let _gp = await getPeers(params);
+  validated.rawResp.peers = _gp.peers;
+  validated.rawResp.complete = _gp.complete;
+  validated.rawResp.incomplete = _gp.incomplete;
 
   // send responses
   res.writeHead(200, {'Content-Type': 'text/plain'});
-  res.end(validated.result);
+  res.end(Bencode.encode(validated.rawResp));
 });
 
 router.get('/_test_announce', function(req, res, next) {
