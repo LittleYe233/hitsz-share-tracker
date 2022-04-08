@@ -26,12 +26,21 @@ export type MySQLConn = DatabaseConn & {
   connect?(...args: any[]): Promise<unknown>;
 }
 
+export type ActiveClientsQueryParams = {
+  passkey?: string;
+  peer_id?: string;
+  info_hash?: string;
+  ip?: string;
+  port?: number;  // SMALLINT UNSIGNED (0~65535)
+  left?: number;  // BIGINT UNSIGNED (0~2^64-1)
+};
+
 type ActiveClientsSpecMethods = {
-  _gethash?(client: { passkey: string, peer_id: string, info_hash: string, ip: string, port: number }): string;
+  _gethash?(client: ActiveClientsQueryParams): string;
   initialize?(): Promise<unknown>;
-  addClient?(client: { passkey: string, peer_id: string, info_hash: string, ip: string, port: number }): Promise<unknown> | Bluebird<unknown>;
-  removeClients?(cond: { passkey?: string, peer_id?: string, info_hash?: string, ip?: string, port?: number }): Promise<unknown> | Bluebird<unknown>;
-  queryClients?(cond: { passkey?: string, peer_id?: string, info_hash?: string, ip?: string, port?: number }): Promise<unknown> | Bluebird<unknown>;
+  addClient?(client: ActiveClientsQueryParams): Promise<unknown> | Bluebird<unknown>;
+  removeClients?(cond: ActiveClientsQueryParams): Promise<unknown> | Bluebird<unknown>;
+  queryClients?(cond: ActiveClientsQueryParams): Promise<Record<string, unknown>[]> | Bluebird<Record<string, unknown>[]>;
   queryTable?(): Promise<unknown> | Bluebird<unknown>;
 };
 

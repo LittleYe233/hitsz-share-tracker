@@ -13,9 +13,9 @@
 const mysql = require('mysql');
 const pmysql = require('promise-mysql');
 const MD5 = require('crypto-js/md5');
+const assert = require('assert');
 
-const activeClientsNames = ['passkey', 'peer_id', 'info_hash', 'ip', 'port'];
-
+const activeClientsNames = ['passkey', 'peer_id', 'info_hash', 'ip', 'port', 'left'];
 const activeClientsMembers = client => activeClientsNames.map(k => client[k]);
 /** @returns {string[]} */
 const activeClientsMemberStrings = client => activeClientsMembers(client).filter(m => m !== undefined).map(m => m.toString());
@@ -90,7 +90,7 @@ function ActiveClientsConn(params={}) {
     // NOTE: See <http://www.bittorrent.org/beps/bep_0023.html> for an
     // explanation of type of `ip` field, or have a look at the documentation
     // of this project.
-    inst.conn.query(`CREATE TABLE ${mysql.escapeId(inst.tbl)} (\`passkey\` CHAR(16) NOT NULL, \`peer_id\` CHAR(32) NOT NULL, \`info_hash\` CHAR(40) NOT NULL, \`ip\` VARCHAR(256) NOT NULL, \`port\` SMALLINT UNSIGNED NOT NULL, \`_hashval\` CHAR(32) NOT NULL, PRIMARY KEY (\`_hashval\`)) ENGINE=InnoDB DEFAULT CHARSET=utf8`)
+    inst.conn.query(`CREATE TABLE ${mysql.escapeId(inst.tbl)} (\`passkey\` CHAR(16) NOT NULL, \`peer_id\` CHAR(32) NOT NULL, \`info_hash\` CHAR(40) NOT NULL, \`ip\` VARCHAR(256) NOT NULL, \`port\` SMALLINT UNSIGNED NOT NULL, \`left\` BIGINT UNSIGNED NOT NULL, \`_hashval\` CHAR(32) NOT NULL, PRIMARY KEY (\`_hashval\`)) ENGINE=InnoDB DEFAULT CHARSET=utf8`)
   ]);
 
   /**
@@ -99,13 +99,11 @@ function ActiveClientsConn(params={}) {
    */
   inst.addClient = (client) => {
     activeClientsNames.forEach(n => {
-      if (client[n] === undefined) {
-        Promise.reject(`property ${n} is not defined`);
-      }
+      assert(client[n] !== undefined, ReferenceError(`property ${n} is not defined`));
     });
 
     return inst.conn.query(
-      `INSERT INTO ${mysql.escapeId(inst.tbl)} (passkey, peer_id, info_hash, ip, port, _hashval) VALUES (?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO ${mysql.escapeId(inst.tbl)} (\`passkey\`, \`peer_id\`, \`info_hash\`, \`ip\`, \`port\`, \`left\`, \`_hashval\`) VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [...activeClientsMembers(client), inst._gethash(client)]);
   };
 
@@ -114,8 +112,8 @@ function ActiveClientsConn(params={}) {
    * @param cond Conditions of the clients to be removed.
    * 
    * A condition is a valid condition only when its field is one of "passkey",
-   * "peer_id", "ip", "port" and "info_hash", regardless whether its value is
-   * valid or not. So you should validate these conditions first.
+   * "peer_id", "ip", "port", "left" and "info_hash", regardless whether its
+   * value is valid or not. So you should validate these conditions first.
    * 
    * If `client` has multiple conditions, the target clients should meet all of
    * them.
@@ -149,8 +147,8 @@ function ActiveClientsConn(params={}) {
    * @param cond Conditions of the target clients.
    * 
    * A condition is a valid condition only when its field is one of "passkey",
-   * "peer_id", "ip", "port" and "info_hash", regardless whether its value is
-   * valid or not. So you should validate these conditions first.
+   * "peer_id", "ip", "port", "left" and "info_hash", regardless whether its
+   * value is valid or not. So you should validate these conditions first.
    * 
    * If `client` has multiple conditions, the target clients should meet all of
    * them.
@@ -176,7 +174,7 @@ function ActiveClientsConn(params={}) {
       }
     } else return Promise.reject('unsupported type');
 
-    return inst.conn.query(`SELECT passkey, peer_id, info_hash, ip, port FROM ${mysql.escapeId(inst.tbl)} WHERE ` + whereClasue);
+    return inst.conn.query(`SELECT \`passkey\`, \`peer_id\`, \`info_hash\`, \`ip\`, \`port\`, \`left\` FROM ${mysql.escapeId(inst.tbl)} WHERE ` + whereClasue);
   };
 
   inst.queryTable = () => inst.conn.query(`SELECT * FROM ${mysql.escapeId(inst.tbl)}`);
