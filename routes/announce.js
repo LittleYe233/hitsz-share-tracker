@@ -1,7 +1,7 @@
 const chalk = require('chalk');
 const mysql = require('promise-mysql');
 const Bencode = require('bencode-js');
-const { validate, validateAsync, getPeers } = require('../utils/announce/process');
+const { validate, validateAsync, getPeers, compactPeers } = require('../utils/announce/process');
 const { parseProjectConfig } = require('../utils/common/config');
 const { ActiveClientsConn } = require('../utils/common/database');
 const router = require('express-promise-router')();
@@ -46,7 +46,9 @@ router.get('/announce', async function(req, res, next) {
     }) : JSON.stringify(e));
   }
   let _gp = await getPeers(params);
-  validated.rawResp.peers = _gp.peers;
+  let peersString = compactPeers(_gp.peers, '4'), peers6String = compactPeers(_gp.peers, '6');
+  validated.rawResp.peers = peersString;
+  validated.rawResp.peers6 = peers6String;
   validated.rawResp.complete = _gp.complete;
   validated.rawResp.incomplete = _gp.incomplete;
 
