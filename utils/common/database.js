@@ -17,8 +17,8 @@ const assert = require('assert');
 
 const activeClientsNames = ['passkey', 'peer_id', 'info_hash', 'ip', 'port', 'left'];
 const activeClientsMembers = client => activeClientsNames.map(k => client[k]);
-/** @returns {string[]} */
-const activeClientsMemberStrings = client => activeClientsMembers(client).filter(m => m !== undefined).map(m => m.toString());
+// /** @returns {string[]} */
+// const activeClientsMemberStrings = client => activeClientsMembers(client).filter(m => m !== undefined).map(m => m.toString());
 
 /**
  * @param {import('./config').BasicMySQLConfig} params
@@ -74,9 +74,11 @@ function ActiveClientsConn(params={}) {
 
   /**
    * Get the hash string of an active client.
-   * @note It is used for primary key to avoid duplication.
+   * 
+   * @note It is used for primary key to avoid duplication. But "left" field is
+   * not included.
    */
-  inst._gethash = (client) => MD5(activeClientsMemberStrings(client).join('')).toString();
+  inst._gethash = (client) => MD5(activeClientsNames.filter(v => v !== 'left' && client[v] !== undefined).map(v => client[v].toString()).join('')).toString();
 
   /**
    * Initialize the database asynchronously.
