@@ -13,6 +13,7 @@
 const assert = require('assert');
 const { isIP } = require('net');
 const Bencode = require('bencode-js');
+const ip6addr = require('ip6addr');
 const { ActiveClientsConn } = require('../common/database');
 const { parseProjectConfig } = require('../common/config');
 
@@ -123,7 +124,8 @@ function validate(params) {
       /** @todo complete, incomplete, peers */
       complete: 0,
       incomplete: 0,
-      peers: []
+      peers: [],
+      peers6: []
     };
     if (typeof params.trackerid !== 'undefined') {
       rawResp['tracker id'] = params.trackerid;
@@ -144,7 +146,8 @@ function validate(params) {
     /** @todo complete, incomplete, peers */
     complete: 0,
     incomplete: 0,
-    peers: []
+    peers: [],
+    peers6: []
   };
   if (typeof params.trackerid !== 'undefined') {
     rawResp['tracker id'] = params.trackerid;
@@ -207,8 +210,49 @@ async function getPeers(params) {
   };
 }
 
+/**
+ * Compact peers (with "ip" and "port" fields at least) into a peer-list string
+ * like what BitTorrent clients announce with "compact=1".
+ * 
+ * Invalid IP addresses will be ignored.
+ * 
+ * @param options a character sequence of "4" and "6"
+ * - "4": (default) parse peers to IPv4-style peer string, incompatible with "6" option
+ * - "6": parse peers to IPv6-style peer string, incompatible with "4" option
+ * 
+ * @type {import('./process').compactPeers}
+ */
+function compactPeers(peers, options='4') {
+  let opt4 = options.includes('4'), opt6 = options.includes('6'), peerString;
+  if (opt4 && opt6) {
+    throw RangeError('options "4" is conflict with "6"');
+  }
+
+  // only with option "6" does it indicate compact IPv6 peers, otherwise
+  // indicates IPv4
+  if (opt6) {
+    peers = peers.filter(v => isIP(v.ip) == 6);
+    peerString = peers.map(v => {
+      let addr = ip6addr.parse(v.ip);
+      let _slots = [ ...addr._fields, v.port ];
+      return _slots.map(n => String.fromCharCode(Math.floor(n / 256)) + String.fromCharCode(n % 256)).join('');
+    }).join('');
+  } else {
+    peers = peers.filter(v => isIP(v.ip) == 4);
+    peerString = peers.map(v => {
+      let addr = ip6addr.parse(v.ip);
+      // for IPv4 addresses `_fields` still returns array of 8 numbers
+      let _slots = [ ...addr._fields.slice(-2), v.port ];
+      return _slots.map(n => String.fromCharCode(Math.floor(n / 256)) + String.fromCharCode(n % 256)).join('');
+    }).join('');
+  }
+
+  return peerString;
+}
+
 module.exports = {
   validate: validate,
   validateAsync: validateAsync,
-  getPeers: getPeers
+  getPeers: getPeers,
+  compactPeers: compactPeers
 };

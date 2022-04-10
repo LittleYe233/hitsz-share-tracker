@@ -14,7 +14,8 @@ export type RawResp = {
   'tracker id'?: unknown;
   complete: number;
   incomplete: number;
-  peers: Peer[];
+  peers: Peer[] | string;
+  peers6: Peer[] | string;
 };
 
 export type validateParams = {
@@ -61,3 +62,4 @@ export function dumpEscaped(escaped: string): string;
 export function validate(params: validateParams): ValidateReturns;
 export function validateAsync(params: validateParams): Promise<ValidateReturns>;
 export function getPeers(params: string | GetPeersParams): Promise<GetPeersReturns>;
+export function compactPeers(params: {ip: string, port: number}[], options: string): string;
