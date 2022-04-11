@@ -1,5 +1,4 @@
 const chalk = require('chalk');
-const mysql = require('promise-mysql');
 const Bencode = require('bencode-js');
 const { validate, validateAsync, getPeers, compactPeers } = require('../utils/announce/process');
 const { parseProjectConfig } = require('../utils/common/config');
@@ -29,14 +28,23 @@ router.get('/announce', async function(req, res, next) {
   console.log(chalk.green('INFO'), logstr, activeClientsMembers(params));
   try {
     await conn.connect();
-    await conn.addClient({
-      passkey: params.passkey,
-      peer_id: params.peer_id,
-      info_hash: params.info_hash,
-      ip: params.ip,
-      port: params.port,
-      left: params.left
-    });
+    if (validated.params.event === 'stopped') {
+      await conn.removeClients({
+        passkey: params.passkey,
+        peer_id: params.peer_id,
+        info_hash: params.info_hash,
+        ip: params.ip,
+        port: params.port
+      });
+    } else {
+      await conn.updateClients({
+        passkey: params.passkey,
+        peer_id: params.peer_id,
+        info_hash: params.info_hash,
+        ip: params.ip,
+        port: params.port
+      }, { left: params.left }, { allowAdd: true });
+    }
     await conn.conn.end();
   } catch (e) {
     console.log(chalk.red('ERR'), 'Reason:', e);
