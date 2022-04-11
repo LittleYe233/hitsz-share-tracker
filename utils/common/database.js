@@ -147,11 +147,12 @@ function ActiveClientsConn(params={}) {
   /**
    * Update active clients from the database asynchronously.
    * @param cond Conditions of the clients to be updated.
-   * @param client New client fields to update.
    * 
    * A condition is a valid condition only when its field is one of "passkey",
    * "peer_id", "ip", "port", "left" and "info_hash", regardless whether its
    * value is valid or not. So you should validate these conditions first.
+   * 
+   * @param client New client fields to update. Leave blank to update nothing.
    * 
    * If `client` has multiple conditions, the target clients should meet all of
    * them. All target clients will be affected by `client` parameter.
@@ -160,11 +161,17 @@ function ActiveClientsConn(params={}) {
    * automatically. If it is same as that of *another* row, a "duplicate entry"
    * error will be thrown. There is no error if this field isn't changed.
    * 
+   * @param options Object of options.
+   * 
+   * - `allowAdd`: (`true` | `false`, default `false`) Allow to add data rows
+   * when the condition hits nothing. When it's set to `true`, make sure all
+   * non-null fields have their values, or the SQL server will throw errors.
+   * 
    * @note Specially, this will update all active clients if `client` doesn't
    * contain a valid condition.
    * @returns a promise returning the result of the statement if fulfilled
    */
-  inst.updateClients = async (cond, client) => {
+  inst.updateClients = async (cond, client, options={ allowAdd: false }) => {
     // a definitely true statement, causing all clients are selected
     let whereClasue = '1=1';
     // as a prefix
@@ -180,11 +187,11 @@ function ActiveClientsConn(params={}) {
           }
         });
       }
-    } else return Promise.reject('unsupported type of condition');
-
-    if (client === undefined) {
-      return Promise.reject('parameter client should exist');
+    } else if (!options.allowAdd) {
+      return Promise.reject('unsupported type of condition');
     }
+
+    client = client || {};
     if (activeClientsMembers(client).some(v => v !== undefined)) {
       let targets = null, results = [];
       try {
@@ -192,7 +199,16 @@ function ActiveClientsConn(params={}) {
       } catch (e) {
         return Promise.reject(e);
       }
-      // `target` has full fields
+
+      // NOTE: `target` has full fields
+      if (!targets.length && options.allowAdd) {
+        let newClient = {};
+        activeClientsNames.forEach(k => {
+          newClient[k] = client[k] || cond[k];
+        });
+        return inst.addClient(newClient);
+      }
+
       for (const target of targets) {
         let newClient = { ...target };  // copy `target`
         for (const k of Object.keys(client)) {
