@@ -21,6 +21,14 @@ const activeClientsMembers = client => activeClientsNames.map(k => client[k]);
 // const activeClientsMemberStrings = client => activeClientsMembers(client).filter(m => m !== undefined).map(m => m.toString());
 
 /**
+ * Get the hash string of an active client.
+ * 
+ * @note It is used for primary key to avoid duplication. But "left" field is
+ * not included.
+ */
+const _gethash = (client) => MD5(activeClientsNames.filter(v => v !== 'left' && client[v] !== undefined).map(v => client[v].toString()).join('')).toString();
+
+/**
  * @param {import('./config').BasicMySQLConfig} params
  */
 function MySQLConn(params) {
@@ -73,14 +81,6 @@ function ActiveClientsConn(params={}) {
   let inst = MySQLConn(params);
 
   /**
-   * Get the hash string of an active client.
-   * 
-   * @note It is used for primary key to avoid duplication. But "left" field is
-   * not included.
-   */
-  inst._gethash = (client) => MD5(activeClientsNames.filter(v => v !== 'left' && client[v] !== undefined).map(v => client[v].toString()).join('')).toString();
-
-  /**
    * Initialize the database asynchronously.
    * @note This is a destructive operation that will erase all previous data and
    * reset the database to a default state.
@@ -106,7 +106,7 @@ function ActiveClientsConn(params={}) {
 
     return inst.conn.query(
       `INSERT INTO ${mysql.escapeId(inst.tbl)} (\`passkey\`, \`peer_id\`, \`info_hash\`, \`ip\`, \`port\`, \`left\`, \`_hashval\`) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [...activeClientsMembers(client), inst._gethash(client)]);
+      [...activeClientsMembers(client), _gethash(client)]);
   };
 
   /**
@@ -135,13 +135,83 @@ function ActiveClientsConn(params={}) {
       if (!cond1) {
         activeClientsNames.forEach(n => {
           if (cond[n] !== undefined) {
-            whereClasue += ` AND ${n}=${mysql.escape(cond[n])}`;
+            whereClasue += ` AND ${mysql.escapeId(n)}=${mysql.escape(cond[n])}`;
           }
         });
       }
     } else return Promise.reject('unsupported type');
 
     return inst.conn.query(`DELETE FROM ${mysql.escapeId(inst.tbl)} WHERE ` + whereClasue);
+  };
+
+  /**
+   * Update active clients from the database asynchronously.
+   * @param cond Conditions of the clients to be updated.
+   * @param client New client fields to update.
+   * 
+   * A condition is a valid condition only when its field is one of "passkey",
+   * "peer_id", "ip", "port", "left" and "info_hash", regardless whether its
+   * value is valid or not. So you should validate these conditions first.
+   * 
+   * If `client` has multiple conditions, the target clients should meet all of
+   * them. All target clients will be affected by `client` parameter.
+   * 
+   * You don't need to pass a `_hashval` field, for it will be calculated
+   * automatically. If it is same as that of *another* row, a "duplicate entry"
+   * error will be thrown. There is no error if this field isn't changed.
+   * 
+   * @note Specially, this will update all active clients if `client` doesn't
+   * contain a valid condition.
+   * @returns a promise returning the result of the statement if fulfilled
+   */
+  inst.updateClients = async (cond, client) => {
+    // a definitely true statement, causing all clients are selected
+    let whereClasue = '1=1';
+    // as a prefix
+    let cond1 = cond === undefined, cond2 = null;
+    if (!cond1) {
+      cond2 = activeClientsMembers(cond).some(v => v !== undefined);
+    }
+    if (cond1 || cond2) {
+      if (!cond1) {
+        activeClientsNames.forEach(n => {
+          if (cond[n] !== undefined) {
+            whereClasue += ` AND ${mysql.escapeId(n)}=${mysql.escape(cond[n])}`;
+          }
+        });
+      }
+    } else return Promise.reject('unsupported type of condition');
+
+    if (client === undefined) {
+      return Promise.reject('parameter client should exist');
+    }
+    if (activeClientsMembers(client).some(v => v !== undefined)) {
+      let targets = null, results = [];
+      try {
+        targets = await inst.queryClients(cond);
+      } catch (e) {
+        return Promise.reject(e);
+      }
+      // `target` has full fields
+      for (const target of targets) {
+        let newClient = { ...target };  // copy `target`
+        for (const k of Object.keys(client)) {
+          if (activeClientsNames.includes(k)) {
+            newClient[k] = client[k];
+          }
+        }
+        let newClientMembers = activeClientsNames.map(v => newClient[v]);
+        try {
+          results.push(await inst.conn.query(
+            `UPDATE ${mysql.escapeId(inst.tbl)} SET \`passkey\`=?, \`peer_id\`=?, \`info_hash\`=?, \`ip\`=?, \`port\`=?, \`left\`=?, \`_hashval\`=? WHERE ` + whereClasue,
+            [ ...newClientMembers, _gethash(newClient) ]
+          ));
+        } catch (e) {
+          return Promise.reject({ message: e, results: results });
+        }
+      }
+      return Promise.resolve(results);
+    } else return Promise.reject('unsupport type of client');
   };
 
   /**
@@ -170,7 +240,7 @@ function ActiveClientsConn(params={}) {
       if (!cond1) {
         activeClientsNames.forEach(n => {
           if (cond[n] !== undefined) {
-            whereClasue += ` AND ${n}=${mysql.escape(cond[n])}`;
+            whereClasue += ` AND ${mysql.escapeId(n)}=${mysql.escape(cond[n])}`;
           }
         });
       }
@@ -186,5 +256,6 @@ function ActiveClientsConn(params={}) {
 
 module.exports = {
   MySQLConn: MySQLConn,
-  ActiveClientsConn: ActiveClientsConn
+  ActiveClientsConn: ActiveClientsConn,
+  getActiveClientsRowHash: _gethash
 };
