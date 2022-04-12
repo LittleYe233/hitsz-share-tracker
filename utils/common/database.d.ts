@@ -11,6 +11,7 @@
 import * as pmysql from 'promise-mysql';
 import * as Bluebird from 'bluebird';
 import { BasicConnectionConfig, BasicMySQLConfig } from './config';
+import { validateParams } from '../announce/process';
 
 type DatabaseConn = BasicConnectionConfig;
 
@@ -38,10 +39,15 @@ export type ActiveClientsQueryParams = {
 type ActiveClientsSpecMethods = {
   _gethash?(client: ActiveClientsQueryParams): string;
   initialize?(): Promise<unknown>;
-  addClient?(client: ActiveClientsQueryParams): Promise<unknown> | Bluebird<unknown>;
-  removeClients?(cond: ActiveClientsQueryParams): Promise<unknown> | Bluebird<unknown>;
-  updateClients?(cond: ActiveClientsQueryParams, client: ActiveClientsQueryParams, options: Record<string, unknown>): Promise<unknown> | Bluebird<unknown>;
-  queryClients?(cond: ActiveClientsQueryParams): Promise<Record<string, unknown>[]> | Bluebird<Record<string, unknown>[]>;
+
+  addClient?(client: ActiveClientsQueryParams, params: validateParams | undefined): Promise<unknown> | Bluebird<unknown>;
+
+  removeClients?(cond: ActiveClientsQueryParams, params: validateParams | undefined): Promise<unknown> | Bluebird<unknown>;
+
+  updateClients?(cond: ActiveClientsQueryParams, client: ActiveClientsQueryParams, options: Record<string, unknown>, params: validateParams | undefined): Promise<unknown> | Bluebird<unknown>;
+
+  queryClients?(cond: ActiveClientsQueryParams, params: validateParams | undefined): Promise<Record<string, unknown>[]> | Bluebird<Record<string, unknown>[]>;
+
   queryTable?(): Promise<unknown> | Bluebird<unknown>;
 };
 

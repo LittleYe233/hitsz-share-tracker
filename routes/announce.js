@@ -35,7 +35,7 @@ router.get('/announce', async function(req, res, next) {
         info_hash: params.info_hash,
         ip: params.ip,
         port: params.port
-      });
+      }, validated.params);
     } else {
       await conn.updateClients({
         passkey: params.passkey,
@@ -43,7 +43,7 @@ router.get('/announce', async function(req, res, next) {
         info_hash: params.info_hash,
         ip: params.ip,
         port: params.port
-      }, { left: params.left }, { allowAdd: true });
+      }, { left: params.left }, { allowAdd: true }, validated.params);
     }
     await conn.conn.end();
   } catch (e) {

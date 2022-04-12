@@ -99,7 +99,10 @@ function ActiveClientsConn(params={}) {
    * Add an active client to the database asynchronously.
    * @returns a promise returning the result of the statement
    */
-  inst.addClient = (client) => {
+  inst.addClient = (client, params) => {
+    if (params !== undefined && params.event === 'started') {
+      client.left = client.left || 1;  // specify a virtual value
+    }
     activeClientsNames.forEach(n => {
       assert(client[n] !== undefined, ReferenceError(`property ${n} is not defined`));
     });
@@ -123,7 +126,7 @@ function ActiveClientsConn(params={}) {
    * contain a valid condition.
    * @returns a promise returning the result of the statement if fulfilled
    */
-  inst.removeClients = (cond) => {
+  inst.removeClients = (cond, params) => {
     // a definitely true statement, causing all clients are selected
     let whereClasue = '1=1';
     // as a prefix
@@ -171,7 +174,7 @@ function ActiveClientsConn(params={}) {
    * contain a valid condition.
    * @returns a promise returning the result of the statement if fulfilled
    */
-  inst.updateClients = async (cond, client, options={ allowAdd: false }) => {
+  inst.updateClients = async (cond, client, options={ allowAdd: false }, params) => {
     // a definitely true statement, causing all clients are selected
     let whereClasue = '1=1';
     // as a prefix
@@ -195,7 +198,7 @@ function ActiveClientsConn(params={}) {
     if (activeClientsMembers(client).some(v => v !== undefined)) {
       let targets = null, results = [];
       try {
-        targets = await inst.queryClients(cond);
+        targets = await inst.queryClients(cond, params);
       } catch (e) {
         return Promise.reject(e);
       }
@@ -206,7 +209,7 @@ function ActiveClientsConn(params={}) {
         activeClientsNames.forEach(k => {
           newClient[k] = client[k] || cond[k];
         });
-        return inst.addClient(newClient);
+        return inst.addClient(newClient, params);
       }
 
       for (const target of targets) {
@@ -244,7 +247,7 @@ function ActiveClientsConn(params={}) {
    * contain a valid condition.
    * @returns a promise returning the result of the statement if fulfilled
    */
-  inst.queryClients = (cond) => {
+  inst.queryClients = (cond, params) => {
     // a definitely true statement, causing all clients are selected
     let whereClasue = '1=1';
     // as a prefix

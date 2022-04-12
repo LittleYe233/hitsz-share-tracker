@@ -181,7 +181,7 @@ async function getPeers(params) {
   let clients;
   try {
     await conn.connect();
-    clients = await conn.queryClients({info_hash: params.info_hash});
+    clients = await conn.queryClients({info_hash: params.info_hash}, undefined);
     await conn.conn.end();
   } catch (e) {
     return Promise.reject(e);
