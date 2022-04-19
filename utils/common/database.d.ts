@@ -36,6 +36,18 @@ export type ActiveClientsQueryParams = {
   left?: number;  // BIGINT UNSIGNED (0~2^64-1)
 };
 
+export type TorrentsQueryParams = {
+  info_hash?: string;
+  category?: number;    // TINYINT (-128~127)
+  title?: string;       // VARCHAR(1024)
+  dateUploaded?: Date;  // DATETIME (can be converted to JS `Date` type)
+  size?: number;        // BIGINT UNSIGNED (0~2^64-1)
+  seeders?: number;     // MEDIUMINT UNSIGNED (0~16777215)
+  leechers?: number;    // MEDIUMINT UNSIGNED (0~16777215)
+  completes?: number;   // MEDIUMINT UNSIGNED (0~16777215)
+  uploader?: number;    // MEDIUMINT (-8388608~8388607)
+};
+
 type ActiveClientsSpecMethods = {
   _gethash?(client: ActiveClientsQueryParams): string;
   initialize?(): Promise<unknown>;
@@ -51,13 +63,31 @@ type ActiveClientsSpecMethods = {
   queryTable?(): Promise<unknown> | Bluebird<unknown>;
 };
 
+type TorrentsSpecMethods = {
+  _gethash?(client: TorrentsQueryParams): string;
+  initialize?(): Promise<unknown>;
+
+  addTorrent?(client: TorrentsQueryParams, params: validateParams | undefined): Promise<unknown> | Bluebird<unknown>;
+
+  removeTorrents?(cond: TorrentsQueryParams, params: validateParams | undefined): Promise<unknown> | Bluebird<unknown>;
+
+  updateTorrents?(cond: TorrentsQueryParams, client: TorrentsQueryParams, options: Record<string, unknown>, params: validateParams | undefined): Promise<unknown> | Bluebird<unknown>;
+
+  queryTorrents?(cond: TorrentsQueryParams, params: validateParams | undefined): Promise<Record<string, unknown>[]> | Bluebird<Record<string, unknown>[]>;
+
+  queryTable?(): Promise<unknown> | Bluebird<unknown>;
+};
+
 type AuthUsersSpecMethods = {};
 
 export type ActiveClientsConfig = BasicMySQLConfig;
+export type TorrentsConfig = BasicMySQLConfig;
 export type AuthUsersConfig = BasicMySQLConfig;
 
-export type _AuthUsersConn = MySQLConn & AuthUsersSpecMethods;
 export type _ActiveClientsConn = MySQLConn & ActiveClientsSpecMethods;
+export type _TorrentsConn = MySQLConn & TorrentsSpecMethods;
+export type _AuthUsersConn = MySQLConn & AuthUsersSpecMethods;
 
-export function AuthUsersConn(params: AuthUsersConfig): _AuthUsersConn;
 export function ActiveClientsConn(params: ActiveClientsConfig): _ActiveClientsConn;
+export function TorrentsConn(params: TorrentsConfig): _TorrentsConn;
+export function AuthUsersConn(params: AuthUsersConfig): _AuthUsersConn;
