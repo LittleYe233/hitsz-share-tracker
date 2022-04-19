@@ -23,6 +23,12 @@ client:
       port:
       db:
       tbl:
+    # MySQL database for torrents
+    torrents:
+      host:
+      port:
+      db:
+      tbl:
 
 # How does a tracker server start a tracker service?
 # E.g. The settings below affect how a tracker server initializes databases.
@@ -34,6 +40,11 @@ server:
       db:
       tbl:
     active_clients:
+      host:
+      port:
+      db:
+      tbl:
+    torrents:
       host:
       port:
       db:

@@ -26,6 +26,10 @@ const DEFAULT_CONFIG = {
       active_clients: {
         host: 'localhost',
         port: 6379
+      },
+      torrents: {
+        host: 'localhost',
+        port: 3306
       }
     }
   },
@@ -38,6 +42,10 @@ const DEFAULT_CONFIG = {
       active_clients: {
         host: 'localhost',
         port: 6379
+      },
+      torrents: {
+        host: 'localhost',
+        port: 3306
       }
     }
   }
