@@ -176,7 +176,7 @@ async function getPeers(params) {
     params = { info_hash: params };
   }
 
-  const conn = ActiveClientsConn(cfg.server.databases.active_clients);
+  const conn = ActiveClientsConn(cfg.client.databases.active_clients);
   /** @type {import('../common/database').ActiveClientsQueryParams[]} */
   let clients;
   try {

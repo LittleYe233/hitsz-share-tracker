@@ -23,7 +23,7 @@ router.get('/announce', async function(req, res, next) {
   const activeClientsNames = ['passkey', 'peer_id', 'info_hash', 'ip', 'port', 'left'];
   const activeClientsMembers = client => activeClientsNames.map(k => client[k]);
 
-  const conn = ActiveClientsConn(cfg.server.databases.active_clients);
+  const conn = ActiveClientsConn(cfg.client.databases.active_clients);
   let logstr = 'Active client request:';
   console.log(chalk.green('INFO'), logstr, activeClientsMembers(params));
   try {
