@@ -82,6 +82,8 @@ router.get('/announce', async function(req, res, next) {
     let flagActiveClientExists = targets !== null && targets.length;
     if (validated.params.event === 'completed') {
       ++newTorrent.completes;
+      ++newTorrent.seeders;
+      --newTorrent.leechers;
     } else if (['stopped', 'paused'].includes(validated.params.event) && flagActiveClientExists) {
       /** @note Better to check if these get to zero. */
       if (validated.params.left === 0) {
@@ -97,7 +99,9 @@ router.get('/announce', async function(req, res, next) {
       }
     }
     if (targetTorrents !== null && targetTorrents.length) {
-      await conn.updateTorrents(newTorrent, newTorrent, { allowAdd: true });
+      await conn.updateTorrents({
+        info_hash: validated.params.info_hash
+      }, newTorrent, { allowAdd: true });
     } else {
       await conn.addTorrent(newTorrent);
     }
