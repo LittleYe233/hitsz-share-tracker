@@ -102,7 +102,7 @@ function validate(params) {
 
     // `params.event`
     params.event = typeof params.event === 'undefined' ? '' : params.event;
-    assert(['started', 'completed', 'stopped', ''].includes(params.event), RangeError('property event should be "started", "completed", "stopped" or ""'));
+    assert(['started', 'completed', 'stopped', 'paused', ''].includes(params.event), RangeError('property event should be "started", "completed", "stopped", "paused" or ""'));
 
     // `params.ip`
     params.ip = typeof params.ip === 'undefined' ? '' : params.ip;

@@ -28,7 +28,7 @@ export type validateParams = {
   left: number,
   compact?: number,
   no_peer_id?: number,
-  event?: 'started' | 'completed' | 'stopped' | '',
+  event?: 'started' | 'completed' | 'stopped' | 'paused' | '',
   ip?: string,
   numwant?: number,
   trackerid?: unknown
