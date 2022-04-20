@@ -64,14 +64,14 @@ type ActiveClientsSpecMethods = {
 };
 
 type TorrentsSpecMethods = {
-  _gethash?(client: TorrentsQueryParams): string;
+  _gethash?(torrent: TorrentsQueryParams): string;
   initialize?(): Promise<unknown>;
 
-  addTorrent?(client: TorrentsQueryParams, params: validateParams | undefined): Promise<unknown> | Bluebird<unknown>;
+  addTorrent?(torrent: TorrentsQueryParams, params: validateParams | undefined): Promise<unknown> | Bluebird<unknown>;
 
   removeTorrents?(cond: TorrentsQueryParams, params: validateParams | undefined): Promise<unknown> | Bluebird<unknown>;
 
-  updateTorrents?(cond: TorrentsQueryParams, client: TorrentsQueryParams, options: Record<string, unknown>, params: validateParams | undefined): Promise<unknown> | Bluebird<unknown>;
+  updateTorrents?(cond: TorrentsQueryParams, torrent: TorrentsQueryParams, options: Record<string, unknown>, params: validateParams | undefined): Promise<unknown> | Bluebird<unknown>;
 
   queryTorrents?(cond: TorrentsQueryParams, params: validateParams | undefined): Promise<Record<string, unknown>[]> | Bluebird<Record<string, unknown>[]>;
 

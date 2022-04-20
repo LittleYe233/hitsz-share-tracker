@@ -30,13 +30,15 @@ export type ParseConfigReturns = {
   client: {
     databases: {
       auth_users: BasicMySQLConfig,
-      active_clients: BasicMySQLConfig
+      active_clients: BasicMySQLConfig,
+      torrents: BasicMySQLConfig
     }
   },
   server: {
     databases: {
       auth_users: BasicMySQLConfig,
-      active_clients: BasicMySQLConfig
+      active_clients: BasicMySQLConfig,
+      torrents: BasicMySQLConfig
     }
   }
 };
