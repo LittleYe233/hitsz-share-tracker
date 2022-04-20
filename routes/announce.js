@@ -2,7 +2,7 @@ const chalk = require('chalk');
 const Bencode = require('bencode-js');
 const { validate, validateAsync, getPeers, compactPeers } = require('../utils/announce/process');
 const { parseProjectConfig } = require('../utils/common/config');
-const { ActiveClientsConn } = require('../utils/common/database');
+const { ActiveClientsConn, TorrentsConn } = require('../utils/common/database');
 const router = require('express-promise-router')();
 
 const cfg = parseProjectConfig();
@@ -18,15 +18,21 @@ router.get('/announce', async function(req, res, next) {
   }
   // validate
   const validated = await validateAsync(params);
+  if (validated.status === 'failed') {
+    res.writeHead(200, {'Content-Type': 'text/plain'});
+    res.end(Bencode.encode(validated.rawResp));
+    return;
+  }
   
   // communicate with databases
   const activeClientsNames = ['passkey', 'peer_id', 'info_hash', 'ip', 'port', 'left'];
   const activeClientsMembers = client => activeClientsNames.map(k => client[k]);
 
-  const conn = ActiveClientsConn(cfg.client.databases.active_clients);
-  let logstr = 'Active client request:';
+  let logstr = 'Active client request:', targets = null, targetTorrents = null, conn = null;
   console.log(chalk.green('INFO'), logstr, activeClientsMembers(params));
   try {
+    // Active Client Database
+    conn = ActiveClientsConn(cfg.client.databases.active_clients);
     await conn.connect();
     if (validated.params.event === 'stopped') {
       await conn.removeClients({
@@ -37,13 +43,63 @@ router.get('/announce', async function(req, res, next) {
         port: params.port
       }, validated.params);
     } else {
-      await conn.updateClients({
+      // `targets` stores the query result before updating active client database
+      [ targets ] = await conn.updateClients({
         passkey: params.passkey,
         peer_id: params.peer_id,
         info_hash: params.info_hash,
         ip: params.ip,
         port: params.port
       }, { left: params.left }, { allowAdd: true }, validated.params);
+    }
+    await conn.conn.end();
+
+    // Torrents Database
+    conn = TorrentsConn(cfg.client.databases.torrents);
+    await conn.connect();
+    let newTorrent;
+    // torrent already exists
+    targetTorrents = await conn.queryTorrents({
+      info_hash: validated.params.info_hash
+    });
+    if (targetTorrents !== null && targetTorrents.length) {
+      newTorrent = targetTorrents[0];
+    }
+    // These below won't be executed normally. Here is only a fallback method.
+    else {
+      newTorrent = {
+        info_hash: validated.params.info_hash,
+        category: -1,               // not configured
+        title: 'null',              // not configured
+        dateUploaded: new Date(0),  // not configured
+        size: 0,                    // not configured
+        seeders: 0,                 // not configured
+        leechers: 0,                // not configured
+        completes: 0,               // not configured
+        uploader: -1                // not configured
+      };
+    }
+    let flagActiveClientExists = targets !== null && targets.length;
+    if (validated.params.event === 'completed') {
+      ++newTorrent.completes;
+    } else if (['stopped', 'paused'].includes(validated.params.event) && flagActiveClientExists) {
+      /** @note Better to check if these get to zero. */
+      if (validated.params.left === 0) {
+        --newTorrent.seeders;
+      } else {
+        --newTorrent.leechers;
+      }
+    } else if (!flagActiveClientExists) {
+      if (validated.params.left === 0) {
+        ++newTorrent.seeders;
+      } else {
+        ++newTorrent.leechers;
+      }
+    }
+    if (targetTorrents !== null && targetTorrents.length) {
+      await conn.updateTorrents(newTorrent, newTorrent, { allowAdd: true });
+    } else {
+      await conn.addTorrent(newTorrent);
     }
     await conn.conn.end();
   } catch (e) {
