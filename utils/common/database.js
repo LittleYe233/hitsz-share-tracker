@@ -178,11 +178,12 @@ function ActiveClientsConn(params={}) {
    * 
    * @note Specially, this will update all active clients if `client` doesn't
    * contain a valid condition.
-   * @returns a promise returning the result of the statement if fulfilled
+   * @returns An array of promises with results of main query operations and
+   * results of the update/add statement if fulfilled.
    */
   inst.updateClients = async (cond, client, options={ allowAdd: false }, params) => {
     // a definitely true statement, causing all clients are selected
-    let whereClasue = '1=1';
+    let whereClasue = '1=1', targets = null;
     // as a prefix
     let cond1 = cond === undefined, cond2 = null;
     if (!cond1) {
@@ -197,16 +198,17 @@ function ActiveClientsConn(params={}) {
         });
       }
     } else if (!options.allowAdd) {
-      return Promise.reject('unsupported type of condition');
+      return [ targets, Promise.reject('unsupported type of condition') ];
     }
 
     client = client || {};
     if (activeClientsMembers(client).some(v => v !== undefined)) {
-      let targets = null, results = [];
+      targets = null;
+      let results = [];
       try {
         targets = await inst.queryClients(cond, params);
       } catch (e) {
-        return Promise.reject(e);
+        return [ targets, Promise.reject(e) ];
       }
 
       // NOTE: `target` has full fields
@@ -215,7 +217,7 @@ function ActiveClientsConn(params={}) {
         activeClientsNames.forEach(k => {
           newClient[k] = client[k] || cond[k];
         });
-        return inst.addClient(newClient, params);
+        return [ targets, inst.addClient(newClient, params) ];
       }
 
       for (const target of targets) {
@@ -232,11 +234,11 @@ function ActiveClientsConn(params={}) {
             [ ...newClientMembers, _gethash(newClient) ]
           ));
         } catch (e) {
-          return Promise.reject({ message: e, results: results });
+          return [ targets, Promise.reject({ message: e, results: results }) ];
         }
       }
-      return Promise.resolve(results);
-    } else return Promise.reject('unsupport type of client');
+      return [ targets, Promise.resolve(results) ];
+    } else return [ targets, Promise.reject('unsupport type of client') ];
   };
 
   /**
@@ -288,7 +290,7 @@ function ActiveClientsConn(params={}) {
 const torrentsNames = ['info_hash', 'category', 'title', 'dateUploaded', 'size', 'seeders', 'leechers', 'completes', 'uploader'];
 const torrentsMembers = client => torrentsNames.map(k => client[k]);
 
-const _gethashTorrents = (torrent) => MD5(torrent.info_hash + torrent.uploader).toString();
+const _gethashTorrents = (torrent) => MD5(torrent.info_hash).toString();
 
 /**
  * @param {import('./database').TorrentsConfig} params
@@ -354,11 +356,12 @@ function TorrentsConn(params={}) {
 
   /**
    * Update torrents from the database asynchronously.
-   * @returns a promise returning the result of the statement if fulfilled
+   * @returns An array of promises with results of main query operations and
+   * results of the update/add statement if fulfilled.
    */
   inst.updateTorrents = async (cond, torrent, options={ allowAdd: false }, params) => {
     // a definitely true statement, causing all torrents are selected
-    let whereClasue = '1=1';
+    let whereClasue = '1=1', targets = null;
     // as a prefix
     let cond1 = cond === undefined, cond2 = null;
     if (!cond1) {
@@ -373,25 +376,26 @@ function TorrentsConn(params={}) {
         });
       }
     } else if (!options.allowAdd) {
-      return Promise.reject('unsupported type of condition');
+      return [ targets, Promise.reject('unsupported type of condition') ];
     }
 
     torrent = torrent || {};
     if (torrentsMembers(torrent).some(v => v !== undefined)) {
-      let targets = null, results = [];
+      targets = null;
+      let results = [];
       try {
         targets = await inst.queryTorrents(cond, params);
       } catch (e) {
-        return Promise.reject(e);
+        return [ targets, Promise.reject(e) ];
       }
 
       // NOTE: `target` has full fields
       if (!targets.length && options.allowAdd) {
         let newTorrent = {};
-        activeClientsNames.forEach(k => {
+        torrentsNames.forEach(k => {
           newTorrent[k] = torrent[k] || cond[k];
         });
-        return inst.addTorrent(newTorrent, params);
+        return [ targets, inst.addTorrent(newTorrent, params) ];
       }
 
       for (const target of targets) {
@@ -408,11 +412,11 @@ function TorrentsConn(params={}) {
             [ ...newTorrentMembers, _gethashTorrents(newTorrent) ]
           ));
         } catch (e) {
-          return Promise.reject({ message: e, results: results });
+          return [ targets, Promise.reject({ message: e, results: results }) ];
         }
       }
-      return Promise.resolve(results);
-    } else return Promise.reject('unsupport type of torrent');
+      return [ targets, Promise.resolve(results) ];
+    } else return [ targets, Promise.reject('unsupport type of torrent') ];
   };
 
   /**
