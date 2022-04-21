@@ -6,7 +6,6 @@ const { ActiveClientsConn, TorrentsConn } = require('../utils/common/database');
 const router = require('express-promise-router')();
 
 const cfg = parseProjectConfig();
-console.log(chalk.blue('DEBUG'), JSON.stringify(cfg));
 
 router.get('/announce', async function(req, res, next) {
   // process

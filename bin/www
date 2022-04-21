@@ -6,6 +6,9 @@
 
 var app = require('../app');
 var http = require('http');
+const chalk = require('chalk');
+const { parseProjectConfig } = require('../utils/common/config');
+const { ActiveClientsConn, TorrentsConn } = require('../utils/common/database');
 
 /**
  * Get port from environment and store in Express.
@@ -14,6 +17,33 @@ var http = require('http');
 var port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
+/**
+ * Get `preinit` from environment and store in Express.
+ */
+
+if (process.env.PREINIT !== undefined) {
+  const preinit = process.env.PREINIT.toLowerCase() === 'true' || normalizePort(process.env.PREINIT) === 1;
+  app.enable('preinit', preinit);
+  if (preinit) {
+    const cfg = parseProjectConfig();  // CWD: the package root
+    console.log(chalk.blue('DEBUG'), JSON.stringify(cfg));
+    app.set('prj_cfg', cfg);
+    (async () => {
+      let conn;
+      conn = await ActiveClientsConn(cfg.client.databases.active_clients);
+      await conn.connect();
+      await conn.initialize();
+      conn = await TorrentsConn(cfg.client.databases.torrents);
+      await conn.connect();
+      await conn.initialize();
+      console.log(chalk.green('INFO'), 'Successfully pre-initialize the databases');
+    })().catch((r) => {
+      console.log(chalk.red('ERR'), 'Error when initializing the databases. Reason:', r);
+    });
+  }
+}
+
+// synchronous here
 /**
  * Create HTTP server.
  */
@@ -26,6 +56,7 @@ var server = http.createServer(app);
 
 server.listen(port);
 server.on('error', onError);
+
 
 /**
  * Normalize a port into a number, string, or false.
