@@ -7,6 +7,21 @@
         {
             "type": "pwa-node",
             "request": "launch",
+            "name": "Launch Program (PREINIT)",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "env": {
+                "PREINIT": "1"
+            },
+            "program": "${workspaceFolder}/bin/www",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js"
+            ]
+        },
+        {
+            "type": "pwa-node",
+            "request": "launch",
             "name": "Launch Program",
             "skipFiles": [
                 "<node_internals>/**"
