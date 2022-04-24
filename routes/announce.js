@@ -97,6 +97,10 @@ router.get('/announce', async function(req, res, next) {
         ++newTorrent.leechers;
       }
     }
+    // fallbacks
+    if (newTorrent.completes < 0) newTorrent.completes = 0;
+    if (newTorrent.seeders < 0) newTorrent.seeders = 0;
+    if (newTorrent.leechers < 0) newTorrent.leechers = 0;
     if (targetTorrents !== null && targetTorrents.length) {
       await conn.updateTorrents({
         info_hash: validated.params.info_hash
