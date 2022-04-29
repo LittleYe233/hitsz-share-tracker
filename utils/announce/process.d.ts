@@ -38,6 +38,7 @@ export type ValidateReturns = {
   status: string,
   message?: string,
   params: validateParams,
+  warnings?: string[],
   result: string,
   rawResp: RawResp
 };

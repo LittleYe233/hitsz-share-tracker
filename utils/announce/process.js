@@ -44,7 +44,7 @@ function dumpEscaped(escaped) {
 /** @type {import('./process').validate}  */
 function validate(params) {
   /** @type {import('./process').RawResp} */
-  let rawResp;
+  let rawResp, warnings = [];
 
   try {
     /* validate simply */
@@ -88,7 +88,10 @@ function validate(params) {
     assert(params.downloaded >= 0, RangeError('property downloaded should not be negative'));
 
     // `params.left`
-    assert(typeof params.left !== 'undefined', ReferenceError('property left is not defined'));
+    if (typeof params.left === 'undefined') {
+      warnings.push('property left is not defined');
+      params.left = 1;  // virtual value
+    }
     params.left = Number(params.left);
     assert(Number.isInteger(params.left), TypeError('property left should be an integer'));
     assert(params.left >= 0, RangeError('property left should not be negative'));
@@ -122,7 +125,6 @@ function validate(params) {
     rawResp = {
       ...DEFAULT_BUILTIN_RAW_RESP,
       'failure reason': e.message,
-      /** @todo complete, incomplete, peers */
       complete: 0,
       incomplete: 0,
       peers: [],
@@ -144,19 +146,24 @@ function validate(params) {
   // return the result
   rawResp = {
     ...DEFAULT_BUILTIN_RAW_RESP,
-    /** @todo complete, incomplete, peers */
     complete: 0,
     incomplete: 0,
     peers: [],
     peers6: []
   };
+
   if (typeof params.trackerid !== 'undefined') {
     rawResp['tracker id'] = params.trackerid;
   }
 
+  if (warnings.length) {
+    rawResp['warning meesage'] = warnings.join('; ');
+  }
+
   return {
-    status: 'passed',
+    status: warnings.length ? 'warned' : 'passed',
     params: params,
+    warnings: warnings,
     rawResp: rawResp,
     result: Bencode.encode(rawResp)
   };
