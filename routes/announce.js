@@ -124,8 +124,14 @@ router.get('/announce', async function(req, res, next) {
   validated.rawResp.incomplete = _gp.incomplete;
 
   // send responses
-  res.writeHead(200, {'Content-Type': 'text/plain'});
-  res.end(Bencode.encode(validated.rawResp));
+  const bencoded = Buffer.from(Bencode.encode(validated.rawResp), 'binary');
+  console.log(chalk.blue('DEBUG'), 'Base64 of bencoded result:', bencoded.toString('base64'));
+  console.log(chalk.blue('DEBUG'), 'validated.rawResp:', JSON.stringify(validated.rawResp));
+  res.writeHead(200, {
+    'Content-Type': 'text/plain',
+    'Content-Length': bencoded.length.toString()  // expected to fix issue #5
+  });
+  res.end(bencoded);
 });
 
 router.get('/_test_announce', function(req, res, next) {
