@@ -16,6 +16,7 @@ const Bencode = require('bencode-js');
 const ip6addr = require('ip6addr');
 const { ActiveClientsConn } = require('../common/database');
 const { parseProjectConfig } = require('../common/config');
+const chalk = require('chalk');
 
 const DEFAULT_NUMWANT = 50;
 const DEFAULT_INTERVAL = 1200;  // 20 min
@@ -246,6 +247,9 @@ function compactPeers(peers, options='4') {
       return _slots.map(n => String.fromCharCode(Math.floor(n / 256)) + String.fromCharCode(n % 256)).join('');
     }).join('');
   }
+
+  console.log(chalk.blue('DEBUG'), 'peers:', peers);
+  console.log(chalk.blue('DEBUG'), 'peerString:', peerString);
 
   return peerString;
 }
