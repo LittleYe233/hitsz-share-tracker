@@ -111,3 +111,6 @@ package-lock.json
 
 # Secret configuration files
 secrets/
+
+# Husky
+.husky/
