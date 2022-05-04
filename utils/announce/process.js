@@ -208,7 +208,7 @@ async function getPeers(params) {
     return ret;
   });
 
-  let completeNum = clients.filter(v => v.left == 0).length;
+  let completeNum = clients.filter(v => v.left === 0).length;
   let incompleteNum = clients.length - completeNum;
 
   return {

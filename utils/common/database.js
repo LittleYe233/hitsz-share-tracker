@@ -107,7 +107,7 @@ function ActiveClientsConn(params={}) {
    */
   inst.addClient = (client, params) => {
     if (params !== undefined && params.event === 'started') {
-      client.left = client.left || 1;  // specify a virtual value
+      client.left = client.left ?? 1;  // specify a virtual value
     }
     activeClientsNames.forEach(n => {
       assert(client[n] !== undefined, ReferenceError(`property ${n} is not defined`));
@@ -201,7 +201,7 @@ function ActiveClientsConn(params={}) {
       return [ targets, Promise.reject('unsupported type of condition') ];
     }
 
-    client = client || {};
+    client = client ?? {};
     if (activeClientsMembers(client).some(v => v !== undefined)) {
       targets = null;
       let results = [];
@@ -215,7 +215,7 @@ function ActiveClientsConn(params={}) {
       if (!targets.length && options.allowAdd) {
         let newClient = {};
         activeClientsNames.forEach(k => {
-          newClient[k] = client[k] || cond[k];
+          newClient[k] = client[k] ?? cond[k];
         });
         return [ targets, inst.addClient(newClient, params) ];
       }
@@ -379,7 +379,7 @@ function TorrentsConn(params={}) {
       return [ targets, Promise.reject('unsupported type of condition') ];
     }
 
-    torrent = torrent || {};
+    torrent = torrent ?? {};
     if (torrentsMembers(torrent).some(v => v !== undefined)) {
       targets = null;
       let results = [];
@@ -393,7 +393,7 @@ function TorrentsConn(params={}) {
       if (!targets.length && options.allowAdd) {
         let newTorrent = {};
         torrentsNames.forEach(k => {
-          newTorrent[k] = torrent[k] || cond[k];
+          newTorrent[k] = torrent[k] ?? cond[k];
         });
         return [ targets, inst.addTorrent(newTorrent, params) ];
       }

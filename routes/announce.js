@@ -10,7 +10,7 @@ const cfg = parseProjectConfig();
 router.get('/announce', async function(req, res, next) {
   // process
   let params = req.query;
-  params.ip = params.ip || req.ip;  // ip must exist
+  params.ip = params.ip ?? req.ip;  // ip must exist
   // parse IPv6 & IPv4 mixed form to standard IPv4
   if (params.ip.substring(0, 7) === '::ffff:') {
     params.ip = params.ip.substring(7);
@@ -33,7 +33,7 @@ router.get('/announce', async function(req, res, next) {
     // Active Client Database
     conn = ActiveClientsConn(cfg.client.databases.active_clients);
     await conn.connect();
-    if (validated.params.event === 'stopped') {
+    if (['stopped', 'paused'].includes(validated.params.event)) {
       await conn.removeClients({
         passkey: params.passkey,
         peer_id: params.peer_id,
@@ -54,10 +54,10 @@ router.get('/announce', async function(req, res, next) {
     await conn.conn.end();
 
     // Torrents Database
-    conn = TorrentsConn(cfg.client.databases.torrents);
-    await conn.connect();
     let newTorrent;
     // torrent already exists
+    conn = TorrentsConn(cfg.client.databases.torrents);
+    await conn.connect();
     targetTorrents = await conn.queryTorrents({
       info_hash: validated.params.info_hash
     });
@@ -83,18 +83,32 @@ router.get('/announce', async function(req, res, next) {
       ++newTorrent.completes;
       ++newTorrent.seeders;
       --newTorrent.leechers;
-    } else if (['stopped', 'paused'].includes(validated.params.event) && flagActiveClientExists) {
-      /** @note Better to check if these get to zero. */
-      if (validated.params.left === 0) {
-        --newTorrent.seeders;
+    } else if (['stopped', 'paused'].includes(validated.params.event)) {
+      /**
+       * @note It's hard to avoid mistaken active client living status, for a
+       * client will be wiped out by `ActiveClientsConn` when a BT client goes
+       * offline, which misleading `TorrentsConn` to consider this client has
+       * been removed and that there is no need to change `seeders` value
+       * anymore. So we directly comment out the if-condition.
+       */
+      if (/* flagActiveClientExists */ true) {
+        if (validated.params.left === 0) {
+          --newTorrent.seeders;
+        } else {
+          --newTorrent.leechers;
+        }
       } else {
-        --newTorrent.leechers;
+        /** @note We suppose there is a mistaken request when going here. */
       }
-    } else if (!flagActiveClientExists) {
-      if (validated.params.left === 0) {
-        ++newTorrent.seeders;
+    } else {
+      if (!flagActiveClientExists) {
+        if (validated.params.left === 0) {
+          ++newTorrent.seeders;
+        } else {
+          ++newTorrent.leechers;
+        }
       } else {
-        ++newTorrent.leechers;
+        /** @note We suppose there is a mistaken request when going here. */
       }
     }
     // fallbacks
@@ -137,7 +151,7 @@ router.get('/announce', async function(req, res, next) {
 router.get('/_test_announce', function(req, res, next) {
   // process
   let params = req.query;
-  params.ip = params.ip || req.ip;  // ip must exist
+  params.ip = params.ip ?? req.ip;  // ip must exist
   // parse IPv6 & IPv4 mixed form to standard IPv4
   if (params.ip.substring(0, 7) === '::ffff:') {
     params.ip = params.ip.substring(7);
