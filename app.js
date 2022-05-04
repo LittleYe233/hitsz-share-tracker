@@ -4,7 +4,6 @@ var logger = require('morgan');
 const createError = require('http-errors');
 
 var announceRouter = require('./routes/announce');
-var _test_reqRouter = require('./routes/_test_req');
 
 var app = express();
 
@@ -17,7 +16,6 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 app.use('/', announceRouter);
-app.use('/', _test_reqRouter);
 
 // HTTP 404 handler
 app.use((req, res, next) => {

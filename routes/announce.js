@@ -148,19 +148,4 @@ router.get('/announce', async function(req, res, next) {
   res.end(bencoded);
 });
 
-router.get('/_test_announce', function(req, res, next) {
-  // process
-  let params = req.query;
-  params.ip = params.ip ?? req.ip;  // ip must exist
-  // parse IPv6 & IPv4 mixed form to standard IPv4
-  if (params.ip.substring(0, 7) === '::ffff:') {
-    params.ip = params.ip.substring(7);
-  }
-  const validation = validate(params);
-
-  // send responses
-  res.writeHead(200, {'Content-Type': 'application/json'});
-  res.end(JSON.stringify(validation));
-});
-
 module.exports = router;
