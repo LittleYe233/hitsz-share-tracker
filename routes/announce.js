@@ -91,15 +91,15 @@ router.get('/announce', async function(req, res, next) {
        * been removed and that there is no need to change `seeders` value
        * anymore. So we directly comment out the if-condition.
        */
-      if (/* flagActiveClientExists */ true) {
-        if (validated.params.left === 0) {
-          --newTorrent.seeders;
-        } else {
-          --newTorrent.leechers;
-        }
+      // if (/* flagActiveClientExists */ true) {
+      if (validated.params.left === 0) {
+        --newTorrent.seeders;
       } else {
-        /** @note We suppose there is a mistaken request when going here. */
+        --newTorrent.leechers;
       }
+      // } else {
+      //   /** @note We suppose there is a mistaken request when going here. */
+      // }
     } else {
       if (!flagActiveClientExists) {
         if (validated.params.left === 0) {
