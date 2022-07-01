@@ -6,8 +6,6 @@
  * @brief An utility to process with requests to and responses from /announce.
  */
 
-// @ts-check
-
 /** */
 
 const assert = require('assert');
